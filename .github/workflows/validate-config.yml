@@ -1,0 +1,49 @@
+name: 配置校验
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'agents/**'
+      - 'commands/**'
+      - 'rules/**'
+      - 'skills/**'
+      - 'contexts/**'
+      - 'hooks/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'CLAUDE.md'
+      - 'README.md'
+      - 'docs/**'
+  push:
+    branches: [main]
+    paths:
+      - 'agents/**'
+      - 'commands/**'
+      - 'rules/**'
+      - 'skills/**'
+      - 'contexts/**'
+      - 'hooks/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'CLAUDE.md'
+
+jobs:
+  validate:
+    name: 验证配置完整性
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 运行配置验证
+        run: node scripts/validate-config.js
+
+      - name: 运行测试套件
+        run: node tests/run-all.js
