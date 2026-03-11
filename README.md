@@ -1,106 +1,183 @@
-# Claude Code 配置（`claude/`）
+# Claude Code 配置（UCC）
 
-> 适用于 Golang、Vue、JavaScript、Node.js 开发者的开箱即用配置
+> 适用于 Golang、Vue、JavaScript、Node.js 开发的开箱即用 Claude Code 配置
 
-本目录为 **Claude Code** 的完整配置集合（代理、命令、规则、技能、上下文、钩子与校验脚本）。
+配置标识：`UCC` · 调用标记：`@ucc` · 命令前缀：`/ucc-*`
 
-> 配置入口已精简为：仅 `CLAUDE.md` 作为 Claude Code 主配置文件。
+---
 
-## 配置标识（Namespace）
+## 快速开始（3 步）
 
-为避免与 Claude Code 自带配置或其他团队配置混淆，本配置集使用唯一标识 `UCC`。
+### 1. 复制配置到项目
 
-- 建议在需要“明确使用本配置集”的请求中加上调用标记：`@ucc`
-- 当消息包含 `@ucc` 或通过本仓库 `commands/` 触发斜杠命令时，输出末尾应出现一行：`配置标识：UCC`
-- 本仓库的斜杠命令已全部命名空间化为：`/ucc-*`（例如 `/ucc-plan`、`/ucc-tdd`），用于避免命令名冲突
+```bash
+# 方式一：脚本复制（推荐）
+node ai-config/scripts/copy-config.js <你的项目目录>
+
+# 方式二：手动复制
+cp ai-config/CLAUDE.md your-project/
+cp -r ai-config/{rules,agents,commands,skills,contexts} your-project/.claude/
+```
+
+### 2. 修改编码规范（可选但建议）
+
+编辑 `rules/common/` 下的文件，匹配你们团队的约定：
+
+| 文件 | 改什么 | 默认值 |
+|------|--------|--------|
+| `coding-style.md` | 函数行数、文件行数 | 函数 < 50行，文件 < 800行 |
+| `testing.md` | 测试覆盖率 | 80% |
+| `git-workflow.md` | 提交格式、分支策略 | Conventional Commits |
+
+### 3. 开始使用
+
+```bash
+# 规划功能
+/ucc-plan "添加用户通知功能"
+
+# 测试驱动开发
+/ucc-tdd
+
+# 代码审查
+/ucc-code-review
+
+# 生成设计文档
+/ucc-design-doc 技术方案
+
+# 生成交付文档
+/ucc-delivery-doc 安装手册
+```
+
+---
 
 ## 目录结构
 
 ```
-claude/
-├── CLAUDE.md                    # 主配置文件（放在项目根目录）
-├── README.md                    # 本使用指南
+ai-config/
+├── CLAUDE.md                    # 主配置文件（放项目根目录）
+├── README.md                    # 本指南
 │
-├── contexts/                    # 工作模式上下文（3个）
-│   ├── dev.md                   # 开发模式上下文
-│   ├── review.md                # 审查模式上下文
-│   └── research.md              # 研究模式上下文
-│
-├── rules/                       # 编码规范
+├── contexts/                    # 工作模式（3个）
+├── rules/                       # 编码规范（团队最常改的部分）
 │   ├── common/                  # 通用规范
-│   ├── golang/                  # Go 语言规范
+│   ├── golang/                  # Go 规范
 │   ├── javascript/              # JavaScript 规范
 │   └── typescript/              # TypeScript/Vue 规范
 │
-├── agents/                      # 代理配置（15个）
+├── agents/                      # 代理（15个）
 ├── commands/                    # 斜杠命令（25个）
 ├── skills/                      # 技能模块（17个）
-├── mcp-configs/                 # MCP 服务配置模板
-├── examples/                    # 项目模板示例
-├── scripts/                     # 工具脚本（含校验）
-├── hooks/                       # 轻量自动化（可选启用）
-└── tests/                       # 基础可用性自测
+├── mcp-configs/                 # MCP 服务配置（需替换密钥占位符）
+├── hooks/                       # 可选安全钩子
+├── scripts/                     # 工具脚本
+├── docs/                        # 深度定制教程
+│   └── 配置定制指南.md           # 详细的分步定制指南
+├── tests/                       # 配置验证测试
+└── .github/                     # CI/CD 管道
 ```
 
-## 快速开始
+---
 
-### 方式一：复制到项目根目录
+## 常用命令速查
+
+### 开发流程
+
+| 命令 | 用途 | 何时用 |
+|------|------|--------|
+| `/ucc-plan` | 实现规划 | 新功能、重大变更前 |
+| `/ucc-tdd` | TDD 开发 | 写代码时 |
+| `/ucc-code-review` | 代码审查 | 写完代码后 |
+| `/ucc-build-fix` | 修复构建错误 | 构建失败时 |
+| `/ucc-verify` | 综合验证 | 提交前 |
+| `/ucc-quality-gate` | 质量门禁 | 提交 PR 前 |
+
+### 文档输出
+
+| 命令 | 用途 | 何时用 |
+|------|------|--------|
+| `/ucc-design-doc` | 设计文档（PRD/技术方案/接口文档） | 功能启动时 |
+| `/ucc-delivery-doc` | 交付文档（安装手册/使用说明/测试报告） | 项目交付时 |
+| `/ucc-update-docs` | 同步更新文档 | 代码变更后 |
+
+### 语言专用
+
+| 命令 | 用途 |
+|------|------|
+| `/ucc-go-review` | Go 代码审查 |
+| `/ucc-go-test` | Go TDD（表驱动测试） |
+| `/ucc-go-build` | Go 构建错误修复 |
+| `/ucc-javascript-review` | JS/TS/Vue 代码审查 |
+| `/ucc-db-review` | 数据库审查（MySQL/SQLite） |
+
+### 工作模式
 
 ```bash
-# 在本仓库根目录执行
-cp claude/CLAUDE.md your-project/
-cp -r claude/rules your-project/
-cp -r claude/agents your-project/
-cp -r claude/commands your-project/
-cp -r claude/skills your-project/
-cp -r claude/contexts your-project/
+/ucc-context-dev       # 开发模式：先写代码，后解释
+/ucc-context-review    # 审查模式：先读代码，再评论
+/ucc-context-research  # 研究模式：先理解，后行动
 ```
 
-### 方式二：全局配置
+---
 
-```bash
-# Windows（示例）
-mkdir %USERPROFILE%\.claude
-copy claude\CLAUDE.md %USERPROFILE%\.claude\
-xcopy /E /I claude\rules %USERPROFILE%\.claude\rules
+## 团队协作约定
 
-# macOS/Linux（示例）
-mkdir -p ~/.claude
-cp claude/CLAUDE.md ~/.claude/
-cp -r claude/{rules,agents,commands,skills,contexts} ~/.claude/
+### 配置变更流程
+
+1. 修改配置文件
+2. 运行校验（必须通过）：
+   ```bash
+   node scripts/validate-config.js
+   node tests/run-all.js
+   ```
+3. 提交 PR，至少 1 人审查
+
+### 提交规范
+
+```
+agents: 新增 database-reviewer 代理
+commands: 新增 /ucc-design-doc 命令
+rules: 调整函数行数限制为 80 行
+skills: 新增 docker-patterns 技能
+docs: 更新配置定制指南
 ```
 
-### 方式三：使用复制脚本（推荐）
+### 排查"配置不生效"
 
-```bash
-# 在本仓库根目录执行
-node claude/scripts/copy-config.js <目标目录>
+1. 在请求中加上 `@ucc`
+2. 检查输出末尾是否出现 `配置标识：UCC`
+3. 如果没出现 → 配置未加载，检查文件位置
 
-# 不传目标目录时会提示输入「项目目录或根目录」
-node claude/scripts/copy-config.js
-```
+### 注意事项
 
-## 配置验证（建议改动后执行）
+- ❌ 不要把密钥写进仓库（`mcp-configs/` 的占位符需替换）
+- ❌ 不要硬编码团队成员的本机路径
+- ✅ 团队先统一 `rules/common/`，再各语言目录做差异化
 
-```bash
-# 在本仓库根目录执行
-node claude/scripts/validate-config.js
-node claude/tests/run-all.js
-```
+---
 
-## 使用风险提示
+## 深入定制
 
-- `docs/配置定制指南.md` 中包含 `rmdir /s /q`、`rm -rf` 等删除命令示例：执行前务必确认当前目录与目标路径。
-- `mcp-configs/mcp-servers.json` 为模板，含 `YOUR_*_HERE` 占位符与路径占位符：请替换为你自己的环境变量与目录。
+需要更详细的定制教程（如何删减代理、添加自定义技能、修改语言规则等），请参阅：
+
+📖 **[配置定制指南](docs/配置定制指南.md)** — 完整的分步定制教程，含需求问卷、修改示例和项目模板
+
+---
 
 ## 版本日志
 
-- **v1.0.0** - 初始版本，支持 Golang、Vue 开发（早期曾包含 Python 支持，现已移除）
-- **v1.1.0** - 添加 commands 和 skills 模块，支持其他 CLI 工具迁移说明
-- **v1.2.0** - 补齐 `/ucc-build-fix` 与 `build-error-resolver`，新增 `rules/typescript/` 与可选轻量 hooks
-- **v1.3.0** - 新增 `/ucc-update-docs`、`/ucc-e2e`、`doc-updater`、`e2e-runner`、`rules/javascript/`、Node/设计技能与基础自测
-- **v2.0.0** - 移除 Python 支持，Vue 合并到 TypeScript，新增 `javascript-reviewer` 代理，扩展 JS/TS 规则和 Skills
-- **v2.1.0** - 新增 `contexts/` 工作模式切换、`scripts/lib/` 工具函数库、新增 `search-first`/`e2e-testing`/`api-design` 技能、新增 `/ucc-sessions`/`/ucc-test-coverage` 命令
-- **v2.2.0** - 新增 `/ucc-context` 命令用于快速切换工作模式
-- **v2.3.0** - 新增 MCP 服务配置、3个代理（architect、refactor-cleaner、go-build-resolver）、6个命令（/ucc-go-test、/ucc-go-build、/ucc-learn、/ucc-checkpoint、/ucc-skill-create、/ucc-refactor-clean）、2个技能（continuous-learning、verification-loop）、项目模板示例（Go 微服务、Vue+Node）
-- **v3.0.0** - 新增 3 个代理（database-reviewer、design-doc-writer、delivery-doc-writer）、4 个命令（/ucc-db-review、/ucc-design-doc、/ucc-delivery-doc、/ucc-quality-gate）、4 个技能（design-doc-patterns、delivery-patterns、docker-patterns、deployment-patterns）、CI/CD 管道和 PR 模板
+- **v1.0.0** - 初始版本，支持 Golang、Vue 开发
+- **v1.1.0** - 添加 commands 和 skills 模块
+- **v1.2.0** - 补齐构建修复代理，新增 TypeScript 规则和 hooks
+- **v1.3.0** - 新增文档同步、E2E 测试、JavaScript 规则和基础自测
+- **v2.0.0** - 移除 Python，Vue 合并到 TypeScript，新增 JS reviewer
+- **v2.1.0** - 新增工作模式切换、工具函数库、3 个新技能和 2 个新命令
+- **v2.2.0** - 新增 `/ucc-context` 快捷切换命令
+- **v2.3.0** - 新增 MCP 配置、3 代理、6 命令、2 技能、项目模板
+- **v3.0.0** - 新增数据库审查、设计/交付文档、Docker/部署技能、质量门禁、CI/CD 管道
+
+---
+
+## 使用风险提示
+
+- `mcp-configs/mcp-servers.json` 含 `YOUR_*_HERE` 占位符：请替换为实际密钥
+- `docs/配置定制指南.md` 中含删除命令示例：执行前务必确认目录
