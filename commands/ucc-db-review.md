@@ -1,5 +1,7 @@
 ---
 description: 审查数据库 Schema、SQL 查询和迁移脚本。支持 MySQL 和 SQLite，覆盖性能、安全和规范性检查。
+context: fork
+agent: database-reviewer
 ---
 
 # DB Review 命令

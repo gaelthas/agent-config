@@ -1,5 +1,7 @@
 ---
 description: 生成或更新设计文档（PRD、技术方案、架构设计、接口文档、数据模型）。在启动新功能或重大变更时使用。
+context: fork
+agent: design-doc-writer
 ---
 
 # Design Doc 命令

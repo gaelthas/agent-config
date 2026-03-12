@@ -1,5 +1,7 @@
 ---
 description: 根据当前代码与配置变更同步更新文档，保持文档与实现一致。
+context: fork
+agent: doc-updater
 ---
 
 # Update Docs 命令

@@ -1,5 +1,7 @@
 ---
 description: 生成交付文档（安装手册、使用说明、测试报告、变更记录）。在项目交付或版本发布时使用。
+context: fork
+agent: delivery-doc-writer
 ---
 
 # Delivery Doc 命令

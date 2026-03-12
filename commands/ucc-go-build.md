@@ -1,5 +1,7 @@
 ---
 description: 增量修复 Go 构建错误、go vet 警告和 linter 问题。调用 go-build-resolver 代理进行最小、精准的修复。
+context: fork
+agent: go-build-resolver
 ---
 
 # Go 构建和修复

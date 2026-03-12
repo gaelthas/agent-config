@@ -1,5 +1,7 @@
 ---
 description: 重述需求、评估风险并创建分步实现计划。在修改任何代码前等待用户确认。
+context: fork
+agent: planner
 ---
 
 # Plan 命令

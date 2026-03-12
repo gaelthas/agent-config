@@ -1,5 +1,7 @@
 ---
 description: 强制测试驱动开发工作流。先搭建接口、生成测试，再实现最小代码通过测试。确保 80%+ 覆盖率。
+context: fork
+agent: tdd-guide
 ---
 
 # TDD 命令

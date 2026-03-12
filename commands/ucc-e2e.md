@@ -1,5 +1,7 @@
 ---
 description: 生成并执行关键用户流程的 E2E 测试（Playwright），输出可复现结果。
+context: fork
+agent: e2e-runner
 ---
 
 # E2E 命令

@@ -1,5 +1,7 @@
 ---
 description: 全面的 Go 代码审查，检查惯用模式、并发安全、错误处理和安全问题。调用 go-reviewer 代理。
+context: fork
+agent: go-reviewer
 ---
 
 # Go 代码审查

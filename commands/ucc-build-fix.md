@@ -1,5 +1,7 @@
 ---
 description: 复现并修复当前项目的构建/类型检查错误，输出修复报告。
+context: fork
+agent: build-error-resolver
 ---
 
 # Build Fix 命令

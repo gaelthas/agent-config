@@ -1,5 +1,7 @@
 ---
 description: 全面的 JavaScript/TypeScript 代码审查，检查 ES6+ 惯用法、异步模式、类型安全和最佳实践。调用 javascript-reviewer 代理。
+context: fork
+agent: javascript-reviewer
 ---
 
 # JavaScript/TypeScript 代码审查
