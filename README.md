@@ -1,6 +1,6 @@
 # Claude Code 配置（UCC）
 
-> 适用于 Golang、Vue、JavaScript、Node.js 开发的开箱即用 Claude Code 配置
+> 适用于 Golang、Vue、TypeScript（前后端）、JavaScript、Node.js 开发的开箱即用 Claude Code 配置
 
 配置标识：`UCC` · 调用标记：`@ucc` · 命令前缀：`/ucc-*`
 
@@ -64,8 +64,8 @@ ai-config/
 │   ├── javascript/              # JavaScript 规范
 │   └── typescript/              # TypeScript/Vue 规范
 │
-├── agents/                      # 代理（15个）
-├── commands/                    # 斜杠命令（25个）
+├── agents/                      # 代理（17个）
+├── commands/                    # 斜杠命令（31个）
 ├── skills/                      # 技能模块（17个）
 ├── mcp-configs/                 # MCP 服务配置（需替换密钥占位符）
 ├── hooks/                       # 可选安全钩子
@@ -90,6 +90,10 @@ ai-config/
 | `/ucc-build-fix` | 修复构建错误 | 构建失败时 |
 | `/ucc-verify` | 综合验证 | 提交前 |
 | `/ucc-quality-gate` | 质量门禁 | 提交 PR 前 |
+| `/ucc-harness-audit` | Harness 快速体检 | 配置升级或异常时 |
+| `/ucc-loop-start` | 启动验证循环 | 大改后或演示前 |
+| `/ucc-loop-status` | 查看验证状态 | 循环运行中 |
+| `/ucc-model-route` | 检查模型路由 | 模型策略调整前 |
 
 ### 文档输出
 
@@ -107,6 +111,8 @@ ai-config/
 | `/ucc-go-test` | Go TDD（表驱动测试） |
 | `/ucc-go-build` | Go 构建错误修复 |
 | `/ucc-javascript-review` | JS/TS/Vue 代码审查 |
+| `/ucc-typescript-review` | 前端 TypeScript/Vue 代码审查 |
+| `/ucc-typescript-backend-review` | 后端 TypeScript/Node 代码审查 |
 | `/ucc-db-review` | 数据库审查（MySQL/SQLite） |
 
 ### 工作模式
@@ -174,6 +180,7 @@ docs: 更新配置定制指南
 - **v2.2.0** - 新增 `/ucc-context` 快捷切换命令
 - **v2.3.0** - 新增 MCP 配置、3 代理、6 命令、2 技能、项目模板
 - **v3.0.0** - 新增数据库审查、设计/交付文档、Docker/部署技能、质量门禁、CI/CD 管道
+- **v3.1.0** - 增量支持前后端 TypeScript 审查，新增 harness/loop/model-route 命令与 hook 运行时控制
 
 ---
 

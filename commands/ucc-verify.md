@@ -15,7 +15,7 @@ description: 对当前代码库状态运行全面验证。
    - 如失败，报告错误并停止
 
 2. **类型检查**
-   - 运行 TypeScript/类型检查器
+   - 运行 TypeScript/类型检查器（Vue 项目优先 `vue-tsc --noEmit`）
    - 报告所有错误及 file:line
 
 3. **代码检查**

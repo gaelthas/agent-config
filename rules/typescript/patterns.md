@@ -169,6 +169,61 @@ class ApiRepository<T> implements Repository<T> {
 }
 ```
 
+## Node.js 后端模式
+
+### Controller / Service 分层
+
+```typescript
+// routes/user.ts
+import { Router } from 'express'
+import { userService } from '../services/userService'
+import { validateCreateUser } from '../validators/user'
+
+const router = Router()
+
+router.post('/', validateCreateUser, async (req, res, next) => {
+  try {
+    const user = await userService.create(req.body)
+    res.status(201).json(user)
+  } catch (error) {
+    next(error)
+  }
+})
+
+export default router
+```
+
+```typescript
+// services/userService.ts
+import { userRepository } from '../repositories/userRepository'
+
+export const userService = {
+  async create(data: CreateUserInput) {
+    return userRepository.create(data)
+  },
+}
+```
+
+### 输入验证（Zod）
+
+```typescript
+import { z } from 'zod'
+import type { Request, Response, NextFunction } from 'express'
+
+const createUserSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(1),
+})
+
+export function validateCreateUser(req: Request, res: Response, next: NextFunction) {
+  const parsed = createUserSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.flatten() })
+  }
+  next()
+}
+```
+
 ## 状态管理（Pinia）
 
 ```typescript

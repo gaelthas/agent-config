@@ -12,6 +12,8 @@
 - `scripts/hooks/pretool-risk-blocker.js`：阻断高风险删除/格式化命令
 - `scripts/hooks/pretool-sensitive-write-check.js`：写入前敏感信息提醒
 - `scripts/hooks/stop-delivery-reminder.js`：结束阶段交付提醒
+- `scripts/hooks/run-with-flags.js`：运行时控制封装器
+- `scripts/lib/hook-flags.js`：Hook 运行时控制解析
 
 ## 启用方式
 
@@ -27,6 +29,28 @@
 ```
 
 > 说明：本仓库默认不强制启用 hooks，按需手动开启，保持“精简可用”。
+
+## 运行时控制（可选）
+
+可通过环境变量在运行时控制 hooks：
+
+- `ECC_HOOK_PROFILE=minimal|standard|strict`（默认 `standard`）
+- `ECC_DISABLED_HOOKS=hook-id,hook-id`（逗号分隔）
+
+内置 hook ID：
+- `pre:cmd:risk-blocker`
+- `pre:write:sensitive-check`
+- `stop:delivery-reminder`
+
+示例：
+
+```bash
+# 只在 strict 模式下启用 hooks
+export ECC_HOOK_PROFILE=strict
+
+# 关闭交付提醒
+export ECC_DISABLED_HOOKS=stop:delivery-reminder
+```
 
 ## 行为说明
 

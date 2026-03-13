@@ -21,7 +21,7 @@
 
 ## 项目概述
 
-这是一个 **Claude Code 配置插件** - 包含生产级代理、技能、命令和规则。为 Golang、Vue、JavaScript、Node.js 开发提供最佳实践工作流。
+这是一个 **Claude Code 配置插件** - 包含生产级代理、技能、命令和规则。为 Golang、Vue、TypeScript（前后端）、JavaScript、Node.js 开发提供最佳实践工作流。
 
 ## 架构说明
 
@@ -30,8 +30,8 @@
 ```
 claude/
 ├── CLAUDE.md              # 主入口配置
-├── agents/                # 专业代理定义（15个）
-├── commands/              # 斜杠命令（25个）
+├── agents/                # 专业代理定义（17个）
+├── commands/              # 斜杠命令（31个）
 ├── contexts/              # 动态上下文注入（3个模式）
 │   ├── dev.md             # 开发模式上下文
 │   ├── review.md          # 审查模式上下文
@@ -83,7 +83,8 @@ claude/
 | 语言 | 规则文件 | Skills | 代理 |
 |------|---------|--------|------|
 | **JavaScript** | 5个（含 hooks） | javascript-patterns, node-backend-patterns | javascript-reviewer |
-| **TypeScript/Vue** | 5个（含 hooks） | frontend-patterns | javascript-reviewer |
+| **TypeScript/Vue** | 5个（含 hooks） | frontend-patterns | typescript-reviewer |
+| **TypeScript/Node** | 5个（含 hooks） | node-backend-patterns | typescript-backend-reviewer |
 | **Golang** | 5个（含 hooks） | golang-patterns, golang-testing | go-reviewer, go-build-resolver |
 
 ## 可用代理
@@ -101,6 +102,8 @@ claude/
 | e2e-runner | 端到端测试执行 | 发布前关键流程验证 |
 | go-reviewer | Go代码审查 | Go项目 |
 | javascript-reviewer | JavaScript/TypeScript/Vue代码审查 | JS/TS/Vue项目 |
+| typescript-reviewer | TypeScript/Vue 前端代码审查 | 前端 TS/Vue 项目 |
+| typescript-backend-reviewer | TypeScript/Node 后端代码审查 | 后端 TS/Node 项目 |
 | refactor-cleaner | 死代码清理 | 代码清理、重构 |
 | database-reviewer | MySQL/SQLite 数据库审查 | 数据库变更、SQL 优化 |
 | design-doc-writer | 设计文档生成 | 新功能启动、技术评审 |
@@ -125,14 +128,29 @@ claude/
 
 ### 语言特定代理详情
 
-#### JavaScript/TypeScript/Vue
+#### JavaScript
 
 **javascript-reviewer** 专注于：
 - ES6+ 惯用法和现代语法
 - 异步模式（Promise、async/await）
-- TypeScript 类型安全
 - 闭包陷阱和 this 绑定
 - XSS、原型污染等安全问题
+
+#### TypeScript/Vue（前端）
+
+**typescript-reviewer** 专注于：
+- TypeScript 类型安全与类型收窄
+- Vue 3 组合式 API 与响应式正确性
+- props/emits 类型定义
+- 前端安全（XSS、v-html 风险）
+
+#### TypeScript/Node（后端）
+
+**typescript-backend-reviewer** 专注于：
+- TypeScript 类型安全与接口约束
+- 输入验证与安全防护
+- 错误处理与日志一致性
+- 服务层结构（controller/service/repository）
 
 #### Golang
 
@@ -165,6 +183,8 @@ claude/
 | 命令 | 用途 |
 |------|------|
 | `/ucc-javascript-review` | JavaScript/TypeScript/Vue 代码审查 |
+| `/ucc-typescript-review` | TypeScript/Vue 前端代码审查 |
+| `/ucc-typescript-backend-review` | TypeScript/Node 后端代码审查 |
 | `/ucc-go-review` | Go 代码审查 |
 | `/ucc-go-test` | Go TDD 工作流（表驱动测试） |
 | `/ucc-go-build` | Go 构建错误修复 |
@@ -192,6 +212,10 @@ claude/
 | `/ucc-design-doc` | 生成设计文档（PRD、技术方案、接口文档） |
 | `/ucc-delivery-doc` | 生成交付文档（安装手册、使用说明、测试报告） |
 | `/ucc-quality-gate` | 提交前质量门禁检查 |
+| `/ucc-harness-audit` | Harness 快速体检 |
+| `/ucc-loop-start` | 启动验证循环 |
+| `/ucc-loop-status` | 查看验证状态 |
+| `/ucc-model-route` | 检查模型路由 |
 | `/ucc-sessions` | 会话历史管理（列表、加载、别名）|
 | `/ucc-refactor-clean` | 安全移除死代码 |
 

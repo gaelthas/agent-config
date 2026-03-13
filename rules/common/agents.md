@@ -17,6 +17,8 @@
 | E2E 测试 | `e2e-runner` | - |
 | Go 代码审查 | `go-reviewer` | `code-reviewer` |
 | JavaScript/TypeScript 审查 | `javascript-reviewer` | `code-reviewer` |
+| TypeScript 前端审查 | `typescript-reviewer` | `code-reviewer` |
+| TypeScript 后端审查 | `typescript-backend-reviewer` | `code-reviewer` |
 
 ### 2. 代理触发时机
 

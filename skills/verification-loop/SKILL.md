@@ -33,6 +33,9 @@ go build ./...
 
 ### 阶段 2: 类型检查
 ```bash
+# Vue + TypeScript 项目
+npx vue-tsc --noEmit 2>&1 | head -30
+
 # TypeScript 项目
 npx tsc --noEmit 2>&1 | head -30
 

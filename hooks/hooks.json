@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node scripts/hooks/pretool-risk-blocker.js"
+            "command": "node scripts/hooks/run-with-flags.js pre:cmd:risk-blocker scripts/hooks/pretool-risk-blocker.js standard,strict"
           }
         ],
         "description": "阻断明显高风险的删除/格式化命令（跨 Bash/PowerShell/Cmd，收紧关键字误报）"
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node scripts/hooks/pretool-sensitive-write-check.js"
+            "command": "node scripts/hooks/run-with-flags.js pre:write:sensitive-check scripts/hooks/pretool-sensitive-write-check.js standard,strict"
           }
         ],
         "description": "写入前检测常见敏感信息模式并提醒"
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node scripts/hooks/stop-delivery-reminder.js"
+            "command": "node scripts/hooks/run-with-flags.js stop:delivery-reminder scripts/hooks/stop-delivery-reminder.js standard,strict"
           }
         ],
         "description": "每次响应后给出最小交付检查提醒"
