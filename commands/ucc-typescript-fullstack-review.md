@@ -1,11 +1,6 @@
 ---
 description: 触发 TypeScript 全栈代码审查，同时调用前端和后端 reviewer agent 并行检查，最终输出统一报告。适合 monorepo 或前后端同仓场景。
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - Agent
+allowed-tools: Read, Grep, Glob, Bash, Agent
 context: fork
 agent: orchestrator
 ---

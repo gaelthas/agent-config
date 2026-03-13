@@ -1,7 +1,6 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
+name: typescript-patterns
+description: 通用 TypeScript 高级类型模式，覆盖工具类型、判别联合、泛型约束、条件类型与模块化声明。适用于所有 TypeScript 项目。
 ---
 # TypeScript 高级类型模式
 

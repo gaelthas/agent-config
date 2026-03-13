@@ -1,9 +1,6 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.spec.ts"
-  - "**/*.test.ts"
+name: typescript-testing
+description: TypeScript 测试技巧，覆盖类型级测试、类型安全 mock、测试辅助类型与异步测试模式。
 ---
 # TypeScript 测试技巧
 
