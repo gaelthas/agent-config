@@ -21,7 +21,6 @@ const copyItems = [
   'scripts',
   'mcp-configs',
   'docs',
-  'examples',
   'tests',
 ]
 
