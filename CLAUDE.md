@@ -49,7 +49,7 @@
 ./
 |-- CLAUDE.md              # 主入口配置
 |-- agents/                # 代理配置（20个）
-|-- commands/              # 公开斜杠命令（25个）
+|-- commands/              # 公开斜杠命令（8个）
 |-- contexts/              # 工作模式（3个）
 |-- rules/                 # 编码规范
 |-- skills/                # 技能模块（19个）
@@ -77,6 +77,8 @@
 - `/ucc-flow-status`
 - `/ucc-flow-continue`
 - `/ucc-flow-abort`
+
+当前公开 slash 命令面固定为 8 个；其余构建修复、专项审查、文档和 E2E 能力只作为内部 agent / workflow 节点调用。
 
 ### 2. 运行时默认自动接力
 
@@ -204,25 +206,9 @@
 - `/ucc-flow-continue`
 - `/ucc-flow-abort`
 
-### 专项能力
+### 内部自动调度能力
 
-- `/ucc-build-fix`
-- `/ucc-go-review`
-- `/ucc-go-test`
-- `/ucc-go-build`
-- `/ucc-javascript-review`
-- `/ucc-typescript-review`
-- `/ucc-typescript-backend-review`
-- `/ucc-typescript-fullstack-review`
-- `/ucc-db-review`
-- `/ucc-design-doc`
-- `/ucc-delivery-doc`
-- `/ucc-test-coverage`
-- `/ucc-e2e`
-- `/ucc-refactor-clean`
-- `/ucc-context-dev`
-- `/ucc-context-review`
-- `/ucc-context-research`
+构建修复、数据库审查、语言专项审查、E2E、文档生成与同步、覆盖率补齐、死代码清理和上下文切换能力继续保留，但不再作为公开 slash 命令暴露；运行时会根据当前节点和风险信号自动调度对应 agent。
 
 ## 安全与质量要求
 

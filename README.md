@@ -54,6 +54,7 @@ your-project/
 /ucc-single-research 分析当前结构问题并给出证据支持的改造建议，如可执行则继续落地
 /ucc-flow-status
 /ucc-flow-continue
+/ucc-flow-abort
 ```
 
 看到输出末尾出现 `配置标识：UCC`，说明当前会话已命中 UCC。
@@ -69,7 +70,7 @@ ai-config/
 |-- contexts/                    # 工作模式（3个）
 |-- rules/                       # 编码规范
 |-- agents/                      # 代理配置（20个）
-|-- commands/                    # 公开斜杠命令（25个）
+|-- commands/                    # 公开斜杠命令（8个）
 |-- skills/                      # 技能模块（19个）
 |-- mcp-configs/                 # MCP 服务配置
 |-- hooks/                       # 可选安全钩子
@@ -101,32 +102,9 @@ ai-config/
 | `/ucc-flow-continue` | 继续当前或指定的 paused run |
 | `/ucc-flow-abort` | 中止当前或指定的 workflow run |
 
-### 专项能力
+### 内部能力
 
-| 命令 | 用途 |
-|------|------|
-| `/ucc-build-fix` | 修复构建错误 |
-| `/ucc-go-review` | Go 代码审查 |
-| `/ucc-go-test` | Go TDD（表驱动测试） |
-| `/ucc-go-build` | Go 构建错误修复 |
-| `/ucc-javascript-review` | JS/TS/Vue 代码审查 |
-| `/ucc-typescript-review` | 前端 TypeScript/Vue 审查 |
-| `/ucc-typescript-backend-review` | 后端 TypeScript/Node 审查 |
-| `/ucc-typescript-fullstack-review` | TypeScript 全栈审查 |
-| `/ucc-db-review` | 数据库审查（MySQL/SQLite） |
-| `/ucc-design-doc` | 设计文档（PRD/技术方案/接口文档） |
-| `/ucc-delivery-doc` | 交付文档（安装手册/使用说明/测试报告） |
-| `/ucc-test-coverage` | 分析测试覆盖率并补齐缺失测试 |
-| `/ucc-e2e` | 关键流程端到端测试 |
-| `/ucc-refactor-clean` | 安全移除死代码 |
-
-### 工作模式
-
-```text
-/ucc-context-dev       # 开发模式：先写代码，后解释
-/ucc-context-review    # 审查模式：先读代码，再评论
-/ucc-context-research  # 研究模式：先理解，后行动
-```
+构建修复、语言专项审查、数据库审查、E2E、文档生成、覆盖率补齐、死代码清理和上下文切换能力仍然保留，但改为由 runtime 按阶段自动调度内部 agent，不再额外占用公开 slash 命令面。
 
 ---
 
@@ -135,6 +113,7 @@ ai-config/
 ### 使用规则
 
 - 用户只需要输入显式命令和需求，不需要手工传 workflow 参数。
+- 公开入口固定为 5 个自动化入口与 3 个控制命令。
 - 公开 flow 入口默认 `executionMode=auto`。
 - 运行时根据 profile 自动推进后续节点。
 - 只有在命中 `pausePolicy`、执行失败、上下文冲突或缺少关键输入时才暂停。
@@ -225,6 +204,7 @@ node tests/run-all.js
 
 ## 版本日志
 
+- **v4.3.0** - 公开 slash 命令面继续收敛到 8 个固定入口，低频专项命令改为内部 agent 能力，由 team / single workflow 自动按需调度
 - **v4.2.0** - 公开流程入口收敛为 `/ucc-team-*` 与 `/ucc-single-*` 的可读命令族，保留 5 个自动化入口与 3 个控制命令，调研链路默认自动接力到标准实施，所有 agents 继续 `model: inherit`
 - **v4.1.0** - 所有 agents 默认继承当前会话模型，移除 legacy 与低频维护命令，公开命令面收敛到 29 个
 - **v4.0.0** - 收敛公开命令面到上一代 flow 命令族，引入 `continue`、自动推进与 profile 级 pause policy

@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '..')
 
 const expectedCounts = {
   agents: 20,
-  commands: 25,
+  commands: 8,
   contexts: 3,
   skills: 19,
 }
