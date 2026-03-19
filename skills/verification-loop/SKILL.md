@@ -127,8 +127,10 @@ Diff:     [X 个文件更改]
 - 完成组件后
 - 移至下一个任务前
 
-运行: /ucc-verify
+重新执行阶段 1-6 中与当前改动相关的检查
 ```
+
+如果你在 UCC 自动流程中工作，应继续使用当前公开入口（如 `/ucc-single-standard`、`/ucc-team-standard`、`/ucc-team-strict`）完成验证阶段，而不是调用已退役命令。
 
 ## 与 Hooks 集成
 

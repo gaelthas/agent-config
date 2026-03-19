@@ -57,12 +57,37 @@ assertContains('agents/team-orchestrator.md', '/ucc-team-standard', 'team-orches
 const definitions = JSON.parse(read('workflows/definitions.json'))
 assert.strictEqual(definitions.profiles['team.standard'].publicCommand, '/ucc-team-standard')
 assert.strictEqual(definitions.profiles['single.standard'].publicCommand, '/ucc-single-standard')
+assert.ok(definitions.profiles['single.standard'].nodes, 'single.standard 缺少 nodes 定义')
+assert.ok(
+  definitions.profiles['single.standard'].nodes[definitions.profiles['single.standard'].entryNode],
+  'single.standard entryNode 未定义到 nodes 中',
+)
+assert.ok(definitions.profiles['single.standard'].nodes.plan, 'single.standard 缺少 plan 节点')
 assert.strictEqual(definitions.profiles['team.research'].nodes.handoff.nextOnSuccess.profile, 'team.standard')
 assert.strictEqual(definitions.profiles['team.research'].nodes.handoff.nextOnSuccess.node, 'plan')
 assert.strictEqual(definitions.profiles['single.research'].nodes['next-action'].nextOnSuccess.profile, 'single.standard')
 assert.strictEqual(definitions.profiles['single.research'].nodes['next-action'].nextOnSuccess.node, 'plan')
+assert.ok(
+  definitions.profiles['single.standard'].nodes[
+    definitions.profiles['single.research'].nodes['next-action'].nextOnSuccess.node
+  ],
+  'single.research handoff 指向了不存在的 single.standard 节点',
+)
 assert.ok(definitions.pausePolicies.auto.includes('build-failed'))
 assert.ok(definitions.pausePolicies.balanced.includes('db-migration'))
 assert.ok(definitions.pausePolicies.strict.includes('quality-gate'))
+
+const hooksReadme = read('hooks/README.md')
+assert.ok(!hooksReadme.includes('/ucc-flow-team-standard'), 'hooks/README.md 不应再引用 /ucc-flow-team-standard')
+assert.ok(!hooksReadme.includes('/ucc-flow-team-doc'), 'hooks/README.md 不应再引用 /ucc-flow-team-doc')
+assert.ok(!hooksReadme.includes('/ucc-e2e'), 'hooks/README.md 不应再引用 /ucc-e2e')
+
+const verificationSkill = read('skills/verification-loop/SKILL.md')
+assert.ok(!verificationSkill.includes('/ucc-verify'), 'verification-loop 技能不应再引用 /ucc-verify')
+
+const hooksRule = read('rules/common/hooks.md')
+assert.ok(hooksRule.includes('PreToolUse'), 'rules/common/hooks.md 应说明 PreToolUse')
+assert.ok(hooksRule.includes('PostToolUse'), 'rules/common/hooks.md 应说明 PostToolUse')
+assert.ok(hooksRule.includes('Stop'), 'rules/common/hooks.md 应说明 Stop')
 
 console.log('workflow-command-metadata.test.js 通过')

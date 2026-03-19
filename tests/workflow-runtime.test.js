@@ -121,6 +121,68 @@ try {
   )
   assert.strictEqual(conflict.action, 'conflict')
   assert.strictEqual(conflict.run.runId, secondStarted.run.runId)
+
+  const resetForSingle = runtime.abortRun({ runId: secondStarted.run.runId, reason: 'single workflow regression' }, options)
+  assert.strictEqual(resetForSingle.action, 'aborted')
+
+  const singleStarted = runtime.startRun(
+    {
+      command: '/ucc-single-standard',
+      task: '单人闭环修复任务',
+    },
+    options,
+  )
+  assert.strictEqual(singleStarted.action, 'started')
+  assert.strictEqual(singleStarted.run.profile, 'single.standard')
+  assert.strictEqual(singleStarted.run.currentNode, 'clarify')
+  assert.strictEqual(singleStarted.run.nextNode, 'plan')
+  assert.strictEqual(singleStarted.run.pausePolicy, 'auto')
+
+  let singleAdvanced = runtime.advanceRun({ runId: singleStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleAdvanced.action, 'advanced')
+  assert.strictEqual(singleAdvanced.run.currentNode, 'plan')
+
+  singleAdvanced = runtime.advanceRun({ runId: singleStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleAdvanced.run.currentNode, 'implement')
+
+  singleAdvanced = runtime.advanceRun({ runId: singleStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleAdvanced.run.currentNode, 'review')
+
+  singleAdvanced = runtime.advanceRun({ runId: singleStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleAdvanced.run.currentNode, 'verify')
+
+  singleAdvanced = runtime.advanceRun({ runId: singleStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleAdvanced.run.currentNode, 'summary')
+
+  singleAdvanced = runtime.advanceRun({ runId: singleStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleAdvanced.action, 'completed')
+  assert.strictEqual(singleAdvanced.run.status, 'completed')
+  assert.strictEqual(runtime.getActiveRunMeta(options), null)
+
+  const singleResearch = runtime.startRun(
+    {
+      command: '/ucc-single-research',
+      task: '单人调研接力测试',
+    },
+    options,
+  )
+  assert.strictEqual(singleResearch.action, 'started')
+  assert.strictEqual(singleResearch.run.profile, 'single.research')
+  assert.strictEqual(singleResearch.run.currentNode, 'define-problem')
+
+  let singleResearchAdvanced = runtime.advanceRun({ runId: singleResearch.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleResearchAdvanced.run.currentNode, 'evidence')
+
+  singleResearchAdvanced = runtime.advanceRun({ runId: singleResearch.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleResearchAdvanced.run.currentNode, 'conclusion')
+
+  singleResearchAdvanced = runtime.advanceRun({ runId: singleResearch.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleResearchAdvanced.run.currentNode, 'next-action')
+
+  singleResearchAdvanced = runtime.advanceRun({ runId: singleResearch.run.runId, result: 'passed' }, options)
+  assert.strictEqual(singleResearchAdvanced.action, 'advanced')
+  assert.strictEqual(singleResearchAdvanced.run.profile, 'single.standard')
+  assert.strictEqual(singleResearchAdvanced.run.currentNode, 'plan')
 } finally {
   fs.rmSync(tempBase, { recursive: true, force: true })
 }

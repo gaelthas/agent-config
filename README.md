@@ -155,11 +155,15 @@ ai-config/
 /ucc-single-standard 基于当前仓库结构完成一轮自动检查、必要修改、验证和总结
 ```
 
+当前 `single.standard` 已是完整闭环，默认会按 `clarify -> plan -> implement -> review -> verify -> summary` 自动推进。
+
 ### 场景 D：单 agent 先调研再落地
 
 ```text
 /ucc-single-research 分析当前仓库的模块边界、构建组织和测试缺口，并在结论明确后继续落地
 ```
+
+`single.research` 在 `next-action` 完成后会自动切入 `single.standard.plan`，不需要用户手工再补一个 `/ucc-single-standard`。
 
 ---
 
@@ -176,6 +180,8 @@ ai-config/
 node scripts/validate-config.js
 node tests/run-all.js
 ```
+
+其中 `validate-config.js` 当前不仅检查文件是否存在，还会校验 workflow 语义闭环、`hooks/hooks.json` 与 `hooks/project-settings.json` 中的 `PreToolUse` / `PostToolUse` / `Stop`、以及文档中是否残留退役的 `/ucc-*` 命令引用。
 
 3. 通过校验后再提交变更。
 
@@ -211,6 +217,7 @@ node .claude/scripts/validate-config.js
 
 ## 版本日志
 
+- **v4.5.0** - 补齐 `single.standard` 闭环定义，完善 `single.research -> single.standard.plan` 接力说明，同时增强 `validate-config.js` 对 workflow 语义、双 hook 配置与退役命令引用的校验
 - **v4.4.0** - 删除 `.internal` 与 `contexts`，默认部署包不再复制 `docs/` 和 `tests/`，同时让已部署项目中的 `validate-config.js` 支持精简布局校验
 - **v4.3.0** - 公开 slash 命令面继续收敛到 8 个固定入口，低频专项命令改为内部 agent 能力，由 team / single workflow 自动按需调度
 - **v4.2.0** - 公开流程入口收敛为 `/ucc-team-*` 与 `/ucc-single-*` 的可读命令族，保留 5 个自动化入口与 3 个控制命令，调研链路默认自动接力到标准实施，所有 agents 继续 `model: inherit`

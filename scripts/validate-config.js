@@ -39,9 +39,12 @@ const requiredFilesByLayout = {
     'scripts/workflow/runner.js',
     'scripts/hooks/pretool-risk-blocker.js',
     'scripts/hooks/pretool-sensitive-write-check.js',
+    'scripts/hooks/posttool-ts-check.js',
+    'scripts/hooks/posttool-go-check.js',
     'scripts/hooks/stop-delivery-reminder.js',
     'scripts/hooks/run-with-flags.js',
     'tests/run-all.js',
+    'tests/hooks-json.test.js',
     'tests/team-workflow.test.js',
     'tests/workflow-command-metadata.test.js',
     'tests/workflow-runtime.test.js',
@@ -102,6 +105,8 @@ const requiredFilesByLayout = {
     'scripts/workflow/runner.js',
     'scripts/hooks/pretool-risk-blocker.js',
     'scripts/hooks/pretool-sensitive-write-check.js',
+    'scripts/hooks/posttool-ts-check.js',
+    'scripts/hooks/posttool-go-check.js',
     'scripts/hooks/stop-delivery-reminder.js',
     'scripts/hooks/run-with-flags.js',
     'agents/team-orchestrator.md',
@@ -150,6 +155,61 @@ const expectedCounts = {
   skills: 19,
 }
 
+const supportedHookEvents = ['PreToolUse', 'PostToolUse', 'Stop']
+const retiredSlashCommands = [
+  '/ucc-flow-team-standard',
+  '/ucc-flow-team-fast',
+  '/ucc-flow-team-strict',
+  '/ucc-flow-team-review',
+  '/ucc-flow-team-research',
+  '/ucc-flow-team-doc',
+  '/ucc-flow-single-dev',
+  '/ucc-flow-single-review',
+  '/ucc-flow-single-research',
+  '/ucc-team-fast',
+  '/ucc-team-review',
+  '/ucc-team-doc',
+  '/ucc-flow',
+  '/ucc-flow-resume',
+  '/ucc-plan',
+  '/ucc-tdd',
+  '/ucc-code-review',
+  '/ucc-verify',
+  '/ucc-update-docs',
+  '/ucc-quality-gate',
+  '/ucc-checkpoint',
+  '/ucc-context',
+  '/ucc-harness-audit',
+  '/ucc-loop-start',
+  '/ucc-loop-status',
+  '/ucc-model-route',
+  '/ucc-learn',
+  '/ucc-skill-create',
+  '/ucc-sessions',
+  '/ucc-build-fix',
+  '/ucc-context-dev',
+  '/ucc-context-review',
+  '/ucc-context-research',
+  '/ucc-db-review',
+  '/ucc-delivery-doc',
+  '/ucc-design-doc',
+  '/ucc-e2e',
+  '/ucc-go-build',
+  '/ucc-go-review',
+  '/ucc-go-test',
+  '/ucc-javascript-review',
+  '/ucc-refactor-clean',
+  '/ucc-test-coverage',
+  '/ucc-typescript-backend-review',
+  '/ucc-typescript-fullstack-review',
+  '/ucc-typescript-review',
+]
+
+const retiredCommandScanTargetsByLayout = {
+  repo: ['README.md', 'CLAUDE.md', 'docs', 'commands', 'hooks', 'rules', 'skills'],
+  deployed: ['README.md', '../CLAUDE.md', 'commands', 'hooks', 'rules', 'skills'],
+}
+
 function checkExists(file) {
   return fs.existsSync(path.join(root, file))
 }
@@ -175,6 +235,10 @@ function assert(condition, message) {
 function extractFrontmatter(content) {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/)
   return match ? match[1] : null
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 function hasFrontmatter(content) {
@@ -262,38 +326,185 @@ function validateCommandsFrontmatter() {
 }
 
 function validateHooksJson() {
-  const parsed = JSON.parse(readText('hooks/hooks.json'))
+  const hookFiles = ['hooks/hooks.json', 'hooks/project-settings.json']
 
-  assert(typeof parsed.$schema === 'string' && parsed.$schema.length > 0, 'hooks.json 缺少有效的 $schema')
-  assert(parsed.hooks && typeof parsed.hooks === 'object', 'hooks.json 缺少 hooks 对象')
+  hookFiles.forEach((file) => {
+    const parsed = JSON.parse(readText(file))
 
-  for (const eventName of ['PreToolUse', 'Stop']) {
-    const entries = parsed.hooks[eventName]
-    assert(Array.isArray(entries), `hooks.${eventName} 必须为数组`)
-    assert(entries.length > 0, `hooks.${eventName} 不能为空`)
+    assert(typeof parsed.$schema === 'string' && parsed.$schema.length > 0, `${file} 缺少有效的 $schema`)
+    assert(parsed.hooks && typeof parsed.hooks === 'object', `${file} 缺少 hooks 对象`)
 
-    entries.forEach((entry, index) => {
-      assert(
-        typeof entry.matcher === 'string' && entry.matcher.length > 0,
-        `hooks.${eventName}[${index}] 缺少 matcher`,
-      )
-      assert(
-        Array.isArray(entry.hooks) && entry.hooks.length > 0,
-        `hooks.${eventName}[${index}] 缺少 hooks 列表`,
-      )
+    supportedHookEvents.forEach((eventName) => {
+      const entries = parsed.hooks[eventName]
+      assert(Array.isArray(entries), `${file} 的 hooks.${eventName} 必须为数组`)
+      assert(entries.length > 0, `${file} 的 hooks.${eventName} 不能为空`)
 
-      entry.hooks.forEach((hook, hookIndex) => {
+      entries.forEach((entry, index) => {
         assert(
-          hook.type === 'command',
-          `hooks.${eventName}[${index}].hooks[${hookIndex}] 的 type 必须为 command`,
+          typeof entry.matcher === 'string' && entry.matcher.length > 0,
+          `${file} 的 hooks.${eventName}[${index}] 缺少 matcher`,
         )
         assert(
-          typeof hook.command === 'string' && hook.command.trim().length > 0,
-          `hooks.${eventName}[${index}].hooks[${hookIndex}] 缺少 command`,
+          Array.isArray(entry.hooks) && entry.hooks.length > 0,
+          `${file} 的 hooks.${eventName}[${index}] 缺少 hooks 列表`,
         )
+
+        entry.hooks.forEach((hook, hookIndex) => {
+          assert(
+            hook.type === 'command',
+            `${file} 的 hooks.${eventName}[${index}].hooks[${hookIndex}] 的 type 必须为 command`,
+          )
+          assert(
+            typeof hook.command === 'string' && hook.command.trim().length > 0,
+            `${file} 的 hooks.${eventName}[${index}].hooks[${hookIndex}] 缺少 command`,
+          )
+        })
       })
     })
+  })
+}
+
+function validateWorkflowDefinitions() {
+  const definitions = JSON.parse(readText('workflows/definitions.json'))
+  assert(definitions.profiles && typeof definitions.profiles === 'object', 'workflows/definitions.json 缺少 profiles')
+  assert(definitions.pausePolicies && typeof definitions.pausePolicies === 'object', 'workflows/definitions.json 缺少 pausePolicies')
+
+  const profiles = definitions.profiles
+
+  function resolveTransition(profileName, nodeName, transition, fieldName) {
+    if (transition == null) {
+      return null
+    }
+
+    assert(
+      transition && typeof transition === 'object',
+      `${profileName}.${nodeName}.${fieldName} 必须为对象或 null`,
+    )
+    assert(
+      typeof transition.node === 'string' && transition.node.length > 0,
+      `${profileName}.${nodeName}.${fieldName} 缺少 node`,
+    )
+
+    const targetProfileName = transition.profile || profileName
+    const targetProfile = profiles[targetProfileName]
+    assert(targetProfile, `${profileName}.${nodeName}.${fieldName} 指向未知 profile: ${targetProfileName}`)
+    assert(targetProfile.nodes && typeof targetProfile.nodes === 'object', `${targetProfileName} 缺少 nodes 定义`)
+    assert(
+      targetProfile.nodes[transition.node],
+      `${profileName}.${nodeName}.${fieldName} 指向不存在的节点: ${targetProfileName}.${transition.node}`,
+    )
+    return transition
   }
+
+  function hasReachableTerminal(profileName, nodeName, visiting, memo) {
+    const key = `${profileName}:${nodeName}`
+    if (memo.has(key)) {
+      return memo.get(key)
+    }
+    if (visiting.has(key)) {
+      return false
+    }
+
+    visiting.add(key)
+    const nodeDef = profiles[profileName].nodes[nodeName]
+    const nextTransitions = [nodeDef.nextOnSuccess, nodeDef.nextOnBlocked].filter(Boolean)
+    const resolvedTransitions = nextTransitions.map((transition) => ({
+      profile: transition.profile || profileName,
+      node: transition.node,
+    }))
+    const result =
+      resolvedTransitions.length === 0
+        ? true
+        : resolvedTransitions.some((target) => hasReachableTerminal(target.profile, target.node, visiting, memo))
+
+    visiting.delete(key)
+    memo.set(key, result)
+    return result
+  }
+
+  Object.entries(profiles).forEach(([profileName, profileDef]) => {
+    assert(typeof profileDef.mode === 'string' && profileDef.mode.length > 0, `${profileName} 缺少 mode`)
+    assert(typeof profileDef.publicCommand === 'string' && profileDef.publicCommand.length > 0, `${profileName} 缺少 publicCommand`)
+    assert(typeof profileDef.entryNode === 'string' && profileDef.entryNode.length > 0, `${profileName} 缺少 entryNode`)
+    assert(profileDef.nodes && typeof profileDef.nodes === 'object', `${profileName} 缺少 nodes 定义`)
+
+    const nodeEntries = Object.entries(profileDef.nodes)
+    assert(nodeEntries.length > 0, `${profileName} 的 nodes 不能为空`)
+    assert(profileDef.nodes[profileDef.entryNode], `${profileName} entryNode 未定义到 nodes 中: ${profileDef.entryNode}`)
+    assert(
+      definitions.pausePolicies[profileDef.pausePolicyDefault],
+      `${profileName} 使用了未知的 pausePolicyDefault: ${profileDef.pausePolicyDefault}`,
+    )
+
+    nodeEntries.forEach(([nodeName, nodeDef]) => {
+      assert(typeof nodeDef.phase === 'string' && nodeDef.phase.length > 0, `${profileName}.${nodeName} 缺少 phase`)
+      assert(
+        typeof nodeDef.executorAgent === 'string' && nodeDef.executorAgent.length > 0,
+        `${profileName}.${nodeName} 缺少 executorAgent`,
+      )
+      resolveTransition(profileName, nodeName, nodeDef.nextOnSuccess, 'nextOnSuccess')
+      resolveTransition(profileName, nodeName, nodeDef.nextOnBlocked, 'nextOnBlocked')
+    })
+
+    assert(
+      hasReachableTerminal(profileName, profileDef.entryNode, new Set(), new Map()),
+      `${profileName} 从 entryNode ${profileDef.entryNode} 无法到达终止节点`,
+    )
+  })
+}
+
+function listMarkdownFilesForTarget(target) {
+  const absTarget = path.join(root, target)
+  if (!fs.existsSync(absTarget)) {
+    return []
+  }
+
+  const stats = fs.statSync(absTarget)
+  if (stats.isFile()) {
+    return absTarget.toLowerCase().endsWith('.md') ? [absTarget] : []
+  }
+
+  const files = []
+  function walk(current) {
+    const entries = fs.readdirSync(current, { withFileTypes: true })
+    entries.forEach((entry) => {
+      const fullPath = path.join(current, entry.name)
+      if (entry.isDirectory()) {
+        walk(fullPath)
+        return
+      }
+      if (entry.isFile() && fullPath.toLowerCase().endsWith('.md')) {
+        files.push(fullPath)
+      }
+    })
+  }
+
+  walk(absTarget)
+  return files
+}
+
+function validateRetiredCommandReferences() {
+  const scanTargets = retiredCommandScanTargetsByLayout[layout] || []
+  const rules = retiredSlashCommands.map((command) => ({
+    needle: command,
+    regex: new RegExp(`(^|[^\\w-])(${escapeRegExp(command)})(?![\\w*-])`),
+  }))
+  const files = [...new Set(scanTargets.flatMap((target) => listMarkdownFilesForTarget(target)))].sort()
+  const hits = []
+
+  files.forEach((absPath) => {
+    const relPath = path.relative(root, absPath).replace(/\\/g, '/')
+    const lines = fs.readFileSync(absPath, 'utf8').split(/\r?\n/)
+    lines.forEach((line, index) => {
+      rules.forEach((rule) => {
+        if (rule.regex.test(line)) {
+          hits.push(`- ${relPath}:${index + 1} 命中 ${rule.needle} | ${line.trim().slice(0, 240)}`)
+        }
+      })
+    })
+  })
+
+  assert(hits.length === 0, `发现退役 /ucc-* 命令残留引用:\n${hits.join('\n')}`)
 }
 
 function validateCustomizationGuideSnapshot() {
@@ -365,6 +576,8 @@ function main() {
     ['Skill Frontmatter', validateSkillsFrontmatter],
     ['Command Frontmatter', validateCommandsFrontmatter],
     ['Hooks 结构', validateHooksJson],
+    ['Workflow 语义', validateWorkflowDefinitions],
+    ['退役命令引用', validateRetiredCommandReferences],
   ]
 
   if (layout === 'repo') {

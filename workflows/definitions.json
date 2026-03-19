@@ -49,6 +49,92 @@
       "executionModeDefault": "auto",
       "pausePolicyDefault": "auto",
       "entryNode": "clarify",
+      "nodes": {
+        "clarify": {
+          "phase": "需求澄清",
+          "executorAgent": "workflow-orchestrator",
+          "successCondition": "目标、约束和边界明确",
+          "failureCondition": "需求冲突或范围不清",
+          "nextOnSuccess": {
+            "node": "plan"
+          },
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "scope-summary"
+          ]
+        },
+        "plan": {
+          "phase": "实现计划",
+          "executorAgent": "planner",
+          "successCondition": "已输出最小可执行计划",
+          "failureCondition": "关键依赖或风险未明确",
+          "nextOnSuccess": {
+            "node": "implement"
+          },
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "implementation-plan"
+          ]
+        },
+        "implement": {
+          "phase": "实施",
+          "executorAgent": "tdd-guide",
+          "successCondition": "已完成实现并记录改动范围",
+          "failureCondition": "实现被构建或依赖阻塞",
+          "nextOnSuccess": {
+            "node": "review"
+          },
+          "nextOnBlocked": {
+            "node": "review"
+          },
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "code-change-summary"
+          ]
+        },
+        "review": {
+          "phase": "审查",
+          "executorAgent": "code-reviewer",
+          "successCondition": "关键问题已解决或记录阻塞",
+          "failureCondition": "存在未解决关键问题",
+          "nextOnSuccess": {
+            "node": "verify"
+          },
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "review-report"
+          ]
+        },
+        "verify": {
+          "phase": "验证",
+          "executorAgent": "code-reviewer",
+          "successCondition": "完成至少一轮验证",
+          "failureCondition": "关键检查失败",
+          "nextOnSuccess": {
+            "node": "summary"
+          },
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "verification-report"
+          ]
+        },
+        "summary": {
+          "phase": "交付总结",
+          "executorAgent": "workflow-orchestrator",
+          "successCondition": "已总结变更、验证和风险",
+          "failureCondition": "无",
+          "nextOnSuccess": null,
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "delivery-summary"
+          ]
+        }
+      },
       "legacyCommands": [
         "/ucc-flow-single-dev"
       ]

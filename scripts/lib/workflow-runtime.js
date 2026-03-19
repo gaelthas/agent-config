@@ -140,7 +140,8 @@ function getProfile(definitions, profile) {
 
 function getNode(definitions, profile, nodeName) {
   const profileDef = getProfile(definitions, profile)
-  const node = profileDef.nodes[nodeName]
+  const nodes = profileDef.nodes || {}
+  const node = nodes[nodeName]
   if (!node) {
     throw new Error(`workflow profile ${profile} 不包含节点 ${nodeName}`)
   }
@@ -329,7 +330,8 @@ function canJoinActiveRun(definitions, activeRun, profile, requestedNode) {
   if (activeRun.profile === profile) return true
   if (requestedNode) {
     const profileDef = getProfile(definitions, activeRun.profile)
-    if (profileDef.nodes[requestedNode]) return true
+    const nodes = profileDef.nodes || {}
+    if (nodes[requestedNode]) return true
   }
   return false
 }
