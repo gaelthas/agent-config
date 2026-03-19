@@ -38,7 +38,7 @@
 ./
 ├── CLAUDE.md              # 主入口配置
 ├── agents/                # 代理配置（20个）
-├── commands/              # 公开斜杠命令（38个）
+├── commands/              # 公开斜杠命令（29个）
 ├── contexts/              # 工作模式（3个）
 ├── rules/                 # 编码规范
 ├── skills/                # 技能模块（19个）
@@ -47,7 +47,6 @@
 ├── docs/                  # 文档
 ├── tests/                 # 配置测试
 ├── workflows/             # workflow 定义与运行时状态
-└── legacy/commands/       # 历史入口归档，不再作为公开命令面
 ```
 
 ## 核心工作方式
@@ -72,7 +71,6 @@
 - `/ucc-flow-continue`
 - `/ucc-flow-abort`
 
-历史入口与拆阶段命令已转移到 `legacy/commands/`，不再作为主路径推荐。
 
 ### 2. 运行时默认自动接力
 
@@ -89,6 +87,7 @@
   - 需要用户补充不可推断的关键输入
 
 暂停后，统一使用 `/ucc-flow-continue [runId]` 接力。
+- 所有自定义 agents 默认 `model: inherit`，继承当前会话模型，避免固定 `opus` / `sonnet` 别名在 provider 侧触发 502。
 
 ## 典型使用方式
 
@@ -213,16 +212,7 @@
 - `/ucc-delivery-doc`
 - `/ucc-test-coverage`
 - `/ucc-e2e`
-- `/ucc-checkpoint`
-- `/ucc-harness-audit`
-- `/ucc-loop-start`
-- `/ucc-loop-status`
-- `/ucc-model-route`
-- `/ucc-learn`
-- `/ucc-skill-create`
-- `/ucc-sessions`
 - `/ucc-refactor-clean`
-- `/ucc-context`
 - `/ucc-context-dev`
 - `/ucc-context-review`
 - `/ucc-context-research`

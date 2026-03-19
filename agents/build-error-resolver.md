@@ -2,7 +2,7 @@
 name: build-error-resolver
 description: 构建与类型错误修复专家。主动用于构建失败、类型检查失败、lint 阻塞时。
 tools: Read, Grep, Glob, Bash, Edit
-model: sonnet
+model: inherit
 ---
 
 你是一位专注于快速定位并修复构建失败问题的工程师。

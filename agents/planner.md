@@ -2,7 +2,7 @@
 name: planner
 description: 复杂功能和重构的实现规划专家。主动用于用户请求功能实现、架构变更或复杂重构时。
 tools: Read, Grep, Glob
-model: opus
+model: inherit
 ---
 
 你是一位专注于创建全面、可执行实现计划的专家规划师。

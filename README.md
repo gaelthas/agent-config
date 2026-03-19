@@ -83,7 +83,7 @@ ai-config/
 │   └── typescript/              # TypeScript/Vue 规范
 │
 ├── agents/                      # 代理（20个）
-├── commands/                    # 公开斜杠命令（38个）
+├── commands/                    # 公开斜杠命令（29个）
 ├── skills/                      # 技能模块（19个）
 ├── mcp-configs/                 # MCP 服务配置（需替换密钥占位符）
 ├── hooks/                       # 可选安全钩子
@@ -92,7 +92,6 @@ ai-config/
 │   └── 配置定制指南.md           # 详细的分步定制指南
 ├── tests/                       # 配置验证测试
 ├── workflows/                   # workflow 定义与运行时状态根目录
-└── legacy/                      # 旧命令参考（不再作为公开入口）
 ```
 
 ---
@@ -138,14 +137,6 @@ ai-config/
 | `/ucc-delivery-doc` | 交付文档（安装手册/使用说明/测试报告） |
 | `/ucc-test-coverage` | 分析测试覆盖率，生成缺失测试 |
 | `/ucc-e2e` | 关键流程端到端测试 |
-| `/ucc-checkpoint` | 创建/验证检查点 |
-| `/ucc-harness-audit` | Harness 快速体检 |
-| `/ucc-loop-start` | 启动验证循环 |
-| `/ucc-loop-status` | 查看验证状态 |
-| `/ucc-model-route` | 检查模型路由 |
-| `/ucc-learn` | 从会话提取可复用模式 |
-| `/ucc-skill-create` | 从 git 历史生成技能 |
-| `/ucc-sessions` | 会话历史管理 |
 | `/ucc-refactor-clean` | 安全移除死代码 |
 
 ### 工作模式
@@ -156,7 +147,7 @@ ai-config/
 /ucc-context-research  # 研究模式：先理解，后行动
 ```
 
-> 说明：历史入口与拆阶段命令已退到 `legacy/commands/`，不再作为公开主路径推荐。
+> 说明：旧入口与低频维护命令已移除，不再作为公开主路径推荐。
 
 ---
 
@@ -169,6 +160,7 @@ ai-config/
 - 运行时根据 profile 自动推进到下一个节点
 - 只在命中 `pausePolicy`、危险操作、失败或冲突时暂停
 - 暂停后使用 `/ucc-flow-continue [runId]`
+- 所有自定义 agents 默认 `model: inherit`，继承当前会话模型，避免固定官方模型别名导致 provider 侧 502
 
 ### profile 默认策略
 
@@ -245,13 +237,13 @@ ai-config/
 - **v1.3.0** - 新增文档同步、E2E 测试、JavaScript 规则和基础自测
 - **v2.0.0** - 移除 Python，Vue 合并到 TypeScript，新增 JS reviewer
 - **v2.1.0** - 新增工作模式切换、工具函数库、3 个新技能和 2 个新命令
-- **v2.2.0** - 新增 `/ucc-context` 快捷切换命令
 - **v2.3.0** - 新增 MCP 配置、3 代理、6 命令、2 技能、项目模板
 - **v3.0.0** - 新增数据库审查、设计/交付文档、Docker/部署技能、质量门禁、CI/CD 管道
 - **v3.1.0** - 增量支持前后端 TypeScript 审查，新增 harness/loop/model-route 命令与 hook 运行时控制
 - **v3.2.0** - 新增 `/ucc-team*` 显式团队流程命令族、team-orchestrator 代理与项目级安装链路校验
 - **v3.3.0** - 新增统一 workflow runtime、`/ucc-flow*` 命令族、workflow-orchestrator 代理与 `.claude/workflows/` 状态持久化
 - **v4.0.0** - 收敛公开命令面到 `/ucc-flow-team-*` 与 `/ucc-flow-single-*`，引入 `continue`、自动推进与 profile 级 pause policy
+- **v4.1.0** - 所有 agents 默认继承当前会话模型，移除 legacy 与低频维护命令，公开命令面收敛到 29 个
 
 ---
 

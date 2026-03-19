@@ -30,6 +30,7 @@ const requiredFiles = [
   'tests/copy-config.test.js',
   'tests/config-smoke.test.js',
   'tests/metadata-integrity.test.js',
+  'tests/model-inheritance.test.js',
   'tests/command-namespace.test.js',
   'agents/team-orchestrator.md',
   'agents/workflow-orchestrator.md',
@@ -57,7 +58,6 @@ const requiredFiles = [
   'commands/ucc-flow-continue.md',
   'commands/ucc-flow-abort.md',
   'commands/ucc-e2e.md',
-  'commands/ucc-context.md',
   'commands/ucc-context-dev.md',
   'commands/ucc-context-review.md',
   'commands/ucc-context-research.md',
@@ -73,14 +73,6 @@ const requiredFiles = [
   'commands/ucc-design-doc.md',
   'commands/ucc-delivery-doc.md',
   'commands/ucc-test-coverage.md',
-  'commands/ucc-checkpoint.md',
-  'commands/ucc-harness-audit.md',
-  'commands/ucc-loop-start.md',
-  'commands/ucc-loop-status.md',
-  'commands/ucc-model-route.md',
-  'commands/ucc-learn.md',
-  'commands/ucc-skill-create.md',
-  'commands/ucc-sessions.md',
   'commands/ucc-refactor-clean.md',
   'rules/javascript/coding-style.md',
   'rules/javascript/security.md',
@@ -102,7 +94,7 @@ const requiredFiles = [
 
 const expectedCounts = {
   agents: 20,
-  commands: 38,
+  commands: 29,
   contexts: 3,
   skills: 19,
 }
@@ -189,6 +181,16 @@ function validateAgentsFrontmatter() {
       'tools',
       'model',
     ])
+  }
+}
+
+function validateAgentModelPolicy() {
+  for (const file of listFiles('agents')) {
+    const rel = path.posix.join('agents', file)
+    const content = readText(rel)
+    const match = content.match(/^model:\s*(.+)$/m)
+    assert(match, `${rel} 缺少 model frontmatter`)
+    assert(match[1].trim() === 'inherit', `${rel} 应继承当前会话模型`)
   }
 }
 
@@ -314,6 +316,7 @@ function main() {
     ['关键文件存在性', validateRequiredFiles],
     ['目录数量', validateDirectoryCounts],
     ['Agent Frontmatter', validateAgentsFrontmatter],
+    ['Agent 模型继承策略', validateAgentModelPolicy],
     ['Skill Frontmatter', validateSkillsFrontmatter],
     ['Command Frontmatter', validateCommandsFrontmatter],
     ['Hooks 结构', validateHooksJson],

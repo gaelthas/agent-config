@@ -8,6 +8,7 @@ const tests = [
   'tests/config-smoke.test.js',
   'tests/hooks-json.test.js',
   'tests/metadata-integrity.test.js',
+  'tests/model-inheritance.test.js',
   'tests/command-namespace.test.js',
   'tests/team-workflow.test.js',
   'tests/workflow-command-metadata.test.js',

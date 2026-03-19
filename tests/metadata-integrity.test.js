@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '..')
 
 const expectedCounts = {
   agents: 20,
-  commands: 38,
+  commands: 29,
   contexts: 3,
   skills: 19,
 }
@@ -99,11 +99,7 @@ const latestReadmeVersion = readmeVersions.reduce((latest, current) => {
 })
 
 assert.strictEqual(Number(agentsMatch[1]), expectedCounts.agents, 'CUSTOMIZATION_GUIDE agents 数量不匹配')
-assert.strictEqual(
-  Number(commandsMatch[1]),
-  expectedCounts.commands,
-  'CUSTOMIZATION_GUIDE commands 数量不匹配',
-)
+assert.strictEqual(Number(commandsMatch[1]), expectedCounts.commands, 'CUSTOMIZATION_GUIDE commands 数量不匹配')
 assert.strictEqual(Number(skillsMatch[1]), expectedCounts.skills, 'CUSTOMIZATION_GUIDE skills 数量不匹配')
 assert.strictEqual(guideVersion[1], latestReadmeVersion, 'CUSTOMIZATION_GUIDE 与 README 版本不一致')
 

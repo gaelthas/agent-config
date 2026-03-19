@@ -9,6 +9,9 @@ const mustHave = [
   'agents/e2e-runner.md',
   'agents/team-orchestrator.md',
   'agents/workflow-orchestrator.md',
+  'commands/ucc-context-dev.md',
+  'commands/ucc-context-review.md',
+  'commands/ucc-context-research.md',
   'commands/ucc-e2e.md',
   'commands/ucc-flow-team-standard.md',
   'commands/ucc-flow-team-fast.md',
@@ -63,8 +66,19 @@ for (const file of mustHave) {
   'commands/ucc-verify.md',
   'commands/ucc-update-docs.md',
   'commands/ucc-quality-gate.md',
+  'commands/ucc-checkpoint.md',
+  'commands/ucc-context.md',
+  'commands/ucc-harness-audit.md',
+  'commands/ucc-loop-start.md',
+  'commands/ucc-loop-status.md',
+  'commands/ucc-model-route.md',
+  'commands/ucc-learn.md',
+  'commands/ucc-skill-create.md',
+  'commands/ucc-sessions.md',
 ].forEach((file) => {
-  assert.ok(!fs.existsSync(path.join(root, file)), `旧公开命令应已移除: ${file}`)
+  assert.ok(!fs.existsSync(path.join(root, file)), `不应再保留公开命令: ${file}`)
 })
+
+assert.ok(!fs.existsSync(path.join(root, 'legacy')), 'legacy 目录应已清理')
 
 console.log('config-smoke.test.js 通过')
