@@ -57,6 +57,7 @@ node .claude/scripts/workflow/runner.js start --command <slash-command> --task "
 - 委派前后要显式维护 control plane：使用 `runner.js delegate` 记录 `pending/running/completed/blocked/failed/skipped`
 - 验证命令执行后要使用 `runner.js verification` 记录验证项状态和摘要
 - 并行委派完成前不得提前推进 workflow；必须按 `joinPolicy` 汇总必需代理结果后，再调用一次 `advance`
+- 只有命中 workflow runtime 核心入口时，才允许使用 `config-sensitive` 信号；范围限定为 `.claude/scripts/lib/workflow-runtime.js`、`.claude/scripts/workflow/runner.js`、`.claude/workflows/definitions.json`、`/ucc-flow-status`、`/ucc-flow-continue`、`/ucc-flow-abort`
 
 ### 3. 推进节点
 
@@ -108,6 +109,7 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 - 命中 `db-migration` 时，在同一个验证节点内按需并行委派 `database-reviewer`
 - 并行委派结束后输出一份汇总审查或验证结论，再进入后续节点
 - 运行适当的验证命令；无法运行时必须说明
+- `/ucc-flow-status` 只应把当前节点的并行委派与验证状态展示给用户，避免把前一节点的记录误显示为当前阻塞
 
 ### 5. 文档同步
 
@@ -151,6 +153,7 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 - 不要省略触发链输出
 - 若任务显然更适合现有专用命令，也应说明对应的 UCC 入口
 - `pausePolicy` 命中时必须暂停，而不是继续自动吞掉高风险变更
+- 不要把普通 `.claude` 文案、说明文档或一般 agent/command 调整一律标成 `config-sensitive`
 - 遇到 `parallel-delegate` 节点时，只允许在当前节点内并行委派，不要创建多个并行 root workflow
 - 计划节点内的并行只产出计划、架构和验证建议，不要在这个阶段并行落生产代码
 - 验证节点内的有限并行验证只允许委派只读型 verifier，不要在这个阶段自动委派 `build-error-resolver` 或 `e2e-runner`

@@ -21,6 +21,7 @@ model: inherit
 - 每次开始、继续或查询时，先展示 workflow runtime 摘要
 - 每次阶段切换都必须显式输出：`当前阶段：...`
 - `/ucc-flow-status` 优先展示 control plane 摘要；若 control plane 缺失，再回退到基础 run 状态
+- `/ucc-flow-status` 应优先展示当前节点对应的 control plane 数据；如果当前节点还没有 verification 记录，则明确输出 `当前节点尚未开始验证`
 - 输出中必须包含：
   - `触发来源`
   - `运行ID`

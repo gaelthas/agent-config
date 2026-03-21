@@ -164,6 +164,9 @@ try {
   )
   assert.strictEqual(secondStarted.action, 'started')
 
+  let secondAdvanced = runtime.advanceRun({ runId: secondStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(secondAdvanced.run.currentNode, 'plan')
+
   let delegateUpdated = runtime.updateDelegateStatus(
     {
       runId: secondStarted.run.runId,
@@ -180,6 +183,7 @@ try {
   let secondControlSnapshot = readJson(getControlPaths(secondStarted.run.runId).runControl)
   let planDelegate = findDelegate(secondControlSnapshot, 'plan-primary')
   assert.ok(planDelegate, 'delegate 更新后应写入 control snapshot')
+  assert.strictEqual(planDelegate.node, 'plan', 'delegate 应记录来源节点')
   assert.strictEqual(planDelegate.status, 'running')
   assert.strictEqual(planDelegate.agent, 'planner')
   assert.strictEqual(planDelegate.required, true)
@@ -200,10 +204,44 @@ try {
 
   secondControlSnapshot = readJson(getControlPaths(secondStarted.run.runId).runControl)
   planDelegate = findDelegate(secondControlSnapshot, 'plan-primary')
+  assert.strictEqual(planDelegate.node, 'plan', 'completed delegate 应保留来源节点')
   assert.strictEqual(planDelegate.status, 'completed')
   assert.strictEqual(planDelegate.summary, 'plan ready')
   assert.deepStrictEqual(planDelegate.signals, ['api-contract'])
   assert.ok(planDelegate.finishedAt, 'completed delegate 应记录 finishedAt')
+
+  secondAdvanced = runtime.advanceRun({ runId: secondStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(secondAdvanced.run.currentNode, 'implement')
+
+  secondAdvanced = runtime.advanceRun({ runId: secondStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(secondAdvanced.run.currentNode, 'review')
+
+  delegateUpdated = runtime.updateDelegateStatus(
+    {
+      runId: secondStarted.run.runId,
+      delegateId: 'review-primary',
+      name: 'code-review',
+      agent: 'code-reviewer',
+      status: 'completed',
+      required: true,
+      summary: 'review ready',
+    },
+    options,
+  )
+  assert.strictEqual(delegateUpdated.action, 'delegate-updated')
+
+  secondControlSnapshot = readJson(getControlPaths(secondStarted.run.runId).runControl)
+  const reviewDelegate = findDelegate(secondControlSnapshot, 'review-primary')
+  assert.ok(reviewDelegate, 'review delegate 更新后应写入 control snapshot')
+  assert.strictEqual(reviewDelegate.node, 'review', 'review delegate 应记录来源节点')
+
+  let reviewStatusSummary = runtime.formatRunSummary(delegateUpdated.run, { action: 'status' })
+  assert.ok(reviewStatusSummary.includes('code-review [completed]'), '当前节点摘要应显示 review delegate')
+  assert.ok(!reviewStatusSummary.includes('implementation-plan [completed]'), '当前节点摘要不应显示 plan delegate')
+  assert.ok(reviewStatusSummary.includes('当前节点尚未开始验证'), 'review 节点无验证记录时应给出明确提示')
+
+  secondAdvanced = runtime.advanceRun({ runId: secondStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(secondAdvanced.run.currentNode, 'verify')
 
   const verificationUpdated = runtime.updateVerificationStatus(
     {
@@ -220,13 +258,15 @@ try {
   secondControlSnapshot = readJson(getControlPaths(secondStarted.run.runId).runControl)
   const tscVerification = findVerification(secondControlSnapshot, 'tsc')
   assert.ok(tscVerification, 'verification 更新后应写入 control snapshot')
+  assert.strictEqual(tscVerification.node, 'verify', 'verification 应记录来源节点')
   assert.strictEqual(tscVerification.status, 'passed')
   assert.strictEqual(tscVerification.source, 'npm run typecheck')
   assert.strictEqual(tscVerification.summary, '0 errors')
 
   const richStatusSummary = runtime.formatRunSummary(verificationUpdated.run, { action: 'status' })
   assert.ok(richStatusSummary.includes('并行委派:'), '状态摘要应包含并行委派区块')
-  assert.ok(richStatusSummary.includes('implementation-plan [completed]'), '状态摘要应显示 delegate 状态')
+  assert.ok(!richStatusSummary.includes('implementation-plan [completed]'), 'verify 节点摘要不应显示 plan delegate')
+  assert.ok(!richStatusSummary.includes('code-review [completed]'), 'verify 节点摘要不应显示 review delegate')
   assert.ok(richStatusSummary.includes('验证状态:'), '状态摘要应包含验证状态区块')
   assert.ok(richStatusSummary.includes('tsc [passed]'), '状态摘要应显示 verification 状态')
 
