@@ -40,29 +40,21 @@
 
 ## 并行执行策略
 
-当前实现采用“串行主干 + 节点内并行审查”的最小策略：root workflow 仍按阶段顺序推进，并行能力只在明确声明的内部节点中开启。
+当前实现采用“串行主干 + 节点内有限并行”的最小策略：root workflow 仍按阶段顺序推进，并行能力只在明确声明的内部节点中开启。
 
 ### 可并行的操作
 
-以下操作可同时进行，无需等待：
+以下操作可在声明了 `parallel-delegate` 的节点内同时进行，无需等待：
 
-```
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   代码审查       │  │   安全审查       │  │   文档更新       │
-│ code-reviewer   │  │security-reviewer│  │  doc-updater    │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
-        │                    │                    │
-        └────────────────────┼────────────────────┘
-                             ▼
-                      汇总结果
-```
+- 审查节点：`code-reviewer` + `security-reviewer`
+- 验证节点：`code-reviewer` + `database-reviewer`（仅在 `db-migration` 信号命中时）
 
 ### 必须串行的操作
 
 以下操作有依赖关系，必须顺序执行：
 
 ```
-team-orchestrator → planner → tdd-guide → 实现 → team-orchestrator(review fan-out) → 修复 → 验证
+team-orchestrator → planner → tdd-guide → 实现 → team-orchestrator(review fan-out) → 修复 → team-orchestrator(verify fan-out) → docs
 ```
 
 ## 代理输出规范
@@ -134,6 +126,17 @@ team-orchestrator → planner → tdd-guide → 实现 → team-orchestrator(rev
 
 适用于：常规代码变更
 仅限 workflow 明确声明支持并行委派的节点，例如 `team.standard.review` 与 `team.strict.review`
+
+### 模式 4：有限并行验证
+
+```
+              ┌→ code-reviewer ────┐
+验证阶段输入 ──┤                     ├──→ 汇总验证结论
+              └→ database-reviewer ─┘
+```
+
+适用于：`team.standard.verify` 与 `team.strict.full-verify`
+约束：仅允许只读型 verifier 进入验证节点并行委派；当前不自动并行调度 `build-error-resolver` 或 `e2e-runner`
 
 ## 代理调用检查清单
 
