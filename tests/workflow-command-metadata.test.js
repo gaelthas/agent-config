@@ -53,6 +53,8 @@ assertContains('agents/workflow-orchestrator.md', '自动推进', 'workflow-orch
 assertContains('agents/workflow-orchestrator.md', '/ucc-flow-continue', 'workflow-orchestrator 缺少 continue 指令')
 assertContains('agents/team-orchestrator.md', 'pausePolicy', 'team-orchestrator 缺少 pausePolicy 约束')
 assertContains('agents/team-orchestrator.md', '/ucc-team-standard', 'team-orchestrator 缺少新命令族说明')
+assertContains('agents/team-orchestrator.md', '只有命中 workflow runtime 核心入口时，才允许使用 `config-sensitive` 信号', 'team-orchestrator 应收紧 config-sensitive 语义')
+assertContains('agents/workflow-orchestrator.md', '当前节点尚未开始验证', 'workflow-orchestrator 应说明更明确的验证空状态')
 
 const definitions = JSON.parse(read('workflows/definitions.json'))
 assert.strictEqual(definitions.profiles['team.standard'].publicCommand, '/ucc-team-standard')
@@ -187,5 +189,14 @@ const hooksRule = read('rules/common/hooks.md')
 assert.ok(hooksRule.includes('PreToolUse'), 'rules/common/hooks.md 应说明 PreToolUse')
 assert.ok(hooksRule.includes('PostToolUse'), 'rules/common/hooks.md 应说明 PostToolUse')
 assert.ok(hooksRule.includes('Stop'), 'rules/common/hooks.md 应说明 Stop')
+
+const readme = read('README.md')
+assert.ok(readme.includes('runtime 核心配置风险'), 'README 应说明 config-sensitive 仅针对 runtime 核心配置风险')
+
+const usageDoc = read('docs/使用说明.md')
+assert.ok(usageDoc.includes('workflow runtime 核心配置风险'), '使用说明应说明 config-sensitive 的收紧语义')
+
+const workflowReadme = read('workflows/README.md')
+assert.ok(workflowReadme.includes('当前节点尚未开始验证'), 'workflow README 应说明验证空状态语义')
 
 console.log('workflow-command-metadata.test.js 通过')

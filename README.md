@@ -115,7 +115,7 @@ ai-config/
 
 构建修复、语言专项审查、数据库审查、E2E、文档生成、覆盖率补齐、死代码清理和上下文切换能力仍然保留，但改为由 runtime 按阶段自动调度内部 agent，不再额外占用公开 slash 命令面。
 
-当前团队 workflow 仍是单 active run 的串行主干；受控并行在 `team.standard.plan`、`team.strict.detailed-plan`、`review` 与验证节点内开启，由 `team-orchestrator` 负责 fan-out/fan-in 汇总。运行时除 `runs/` 与 `events/` 外，还会在 `.claude/workflows/control/` 下写入可读 control plane 快照，供 `/ucc-flow-status` 展示最近阶段摘要、并行委派状态、验证结果和阻塞原因。
+当前团队 workflow 仍是单 active run 的串行主干；受控并行在 `team.standard.plan`、`team.strict.detailed-plan`、`review` 与验证节点内开启，由 `team-orchestrator` 负责 fan-out/fan-in 汇总。运行时除 `runs/` 与 `events/` 外，还会在 `.claude/workflows/control/` 下写入可读 control plane 快照，供 `/ucc-flow-status` 只展示当前节点对应的最近阶段摘要、并行委派状态、验证结果和阻塞原因；若当前节点尚未开始验证，则会明确显示该空状态。
 
 ---
 
@@ -128,6 +128,7 @@ ai-config/
 - 公开 flow 入口默认 `executionMode=auto`。
 - 运行时根据 profile 自动推进后续节点。
 - 只有在命中 `pausePolicy`、执行失败、上下文冲突或缺少关键输入时才暂停。
+- `team.standard` 下的 `config-sensitive` 仅用于 workflow runtime 核心配置风险，不用于普通 `.claude` 文案或说明变更。
 - 暂停后统一使用 `/ucc-flow-status` 和 `/ucc-flow-continue`。
 - 所有自定义 agents 默认 `model: inherit`，继承当前会话模型，避免固定官方模型别名导致 provider 侧 502。
 

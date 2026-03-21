@@ -244,6 +244,37 @@ function normalizeBoolean(value, fallback = null) {
   return fallback
 }
 
+function hasNodeScopedItems(items) {
+  return Array.isArray(items) && items.some((item) => item && item.node)
+}
+
+function filterItemsForCurrentNode(items, currentNode) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return []
+  }
+  if (!currentNode || !hasNodeScopedItems(items)) {
+    return items
+  }
+  return items.filter((item) => item && item.node === currentNode)
+}
+
+function findScopedItem(items, matcher, node) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return null
+  }
+
+  const scopedMatch = items.find((item) => matcher(item) && String(item.node || '') === String(node || ''))
+  if (scopedMatch) {
+    return scopedMatch
+  }
+
+  if (!hasNodeScopedItems(items)) {
+    return items.find((item) => matcher(item)) || null
+  }
+
+  return null
+}
+
 function updateDelegateStatus(params = {}, options = {}) {
   const activeMeta = getActiveRunMeta(options)
   const runId = params.runId || params.run || (activeMeta && activeMeta.runId)
@@ -266,11 +297,13 @@ function updateDelegateStatus(params = {}, options = {}) {
   const status = params.status || 'pending'
   const summary = params.summary
   const reason = params.reason || ''
+  const node = params.node || run.currentNode || ''
 
-  let delegate = controlPlane.delegates.find((item) => item.delegateId === delegateId)
+  let delegate = findScopedItem(controlPlane.delegates, (item) => item.delegateId === delegateId, node)
   if (!delegate) {
     delegate = {
       delegateId,
+      node,
       name: name || delegateId,
       agent: agent || '',
       status: 'pending',
@@ -283,6 +316,7 @@ function updateDelegateStatus(params = {}, options = {}) {
     controlPlane.delegates.push(delegate)
   }
 
+  if (node) delegate.node = node
   if (name) delegate.name = name
   if (agent) delegate.agent = agent
   if (required !== null) delegate.required = required
@@ -315,7 +349,7 @@ function updateDelegateStatus(params = {}, options = {}) {
     run.runId,
     {
       type: 'delegate',
-      node: run.currentNode,
+      node: delegate.node || run.currentNode,
       delegateId,
       name: delegate.name,
       agent: delegate.agent,
@@ -353,11 +387,13 @@ function updateVerificationStatus(params = {}, options = {}) {
   const signals = parseList(params.signals)
   const reason = params.reason || ''
   const now = nowIso()
+  const node = params.node || run.currentNode || ''
 
-  let verification = controlPlane.verification.find((item) => item.name === name)
+  let verification = findScopedItem(controlPlane.verification, (item) => item.name === name, node)
   if (!verification) {
     verification = {
       name,
+      node,
       status: 'pending',
       source: '',
       summary: '',
@@ -367,6 +403,7 @@ function updateVerificationStatus(params = {}, options = {}) {
     controlPlane.verification.push(verification)
   }
 
+  if (node) verification.node = node
   verification.status = status
   if (source !== undefined) verification.source = source
   if (summary !== undefined) verification.summary = summary
@@ -386,7 +423,7 @@ function updateVerificationStatus(params = {}, options = {}) {
     run.runId,
     {
       type: 'verification',
-      node: run.currentNode,
+      node: verification.node || run.currentNode,
       name,
       status,
       source: verification.source,
@@ -1039,6 +1076,8 @@ function formatRunSummary(run, options = {}) {
   }
 
   const controlPlane = options.controlPlane || buildControlPlaneSnapshot(run)
+  const currentDelegates = filterItemsForCurrentNode(controlPlane.delegates, run.currentNode)
+  const currentVerification = filterItemsForCurrentNode(controlPlane.verification, run.currentNode)
   const lines = []
   const actionLabel = options.action ? `动作: ${options.action}` : null
   const continueCommand = run.status === 'paused' ? `/ucc-flow-continue ${run.runId}` : '无'
@@ -1068,8 +1107,8 @@ function formatRunSummary(run, options = {}) {
     lines.push(`最近阶段信号: ${controlPlane.phase.lastSignals.join(', ')}`)
   }
   lines.push('并行委派:')
-  if (Array.isArray(controlPlane.delegates) && controlPlane.delegates.length > 0) {
-    controlPlane.delegates.forEach((delegate) => {
+  if (currentDelegates.length > 0) {
+    currentDelegates.forEach((delegate) => {
       const parts = [`- ${delegate.name || delegate.delegateId} [${delegate.status}]`]
       if (delegate.agent) parts.push(`agent=${delegate.agent}`)
       if (delegate.required === true) parts.push('required=yes')
@@ -1081,13 +1120,15 @@ function formatRunSummary(run, options = {}) {
     lines.push('- 无')
   }
   lines.push('验证状态:')
-  if (Array.isArray(controlPlane.verification) && controlPlane.verification.length > 0) {
-    controlPlane.verification.forEach((item) => {
+  if (currentVerification.length > 0) {
+    currentVerification.forEach((item) => {
       const parts = [`- ${item.name} [${item.status}]`]
       if (item.source) parts.push(`source=${item.source}`)
       if (item.summary) parts.push(`summary=${item.summary}`)
       lines.push(parts.join(' '))
     })
+  } else if (run.currentNode) {
+    lines.push('- 当前节点尚未开始验证')
   } else {
     lines.push('- 无')
   }

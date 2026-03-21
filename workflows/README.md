@@ -48,5 +48,5 @@ node .claude/scripts/workflow/runner.js abort --run <runId>
 - `verification`：更新当前节点内某个验证项的状态、来源与摘要
 - `continue`：继续一个 `paused` run
 - `resume`：`continue` 的兼容别名
-- `status`：查看当前或指定 run 的最新摘要，优先展示 control plane
+- `status`：查看当前或指定 run 的最新摘要，优先展示当前节点对应的 control plane；如果当前节点还没有 verification 记录，则明确显示 `当前节点尚未开始验证`
 - `abort`：中止当前或指定 run
