@@ -24,6 +24,7 @@ npm-debug.log*
 # Temp
 tmp/
 .tmp/
+.worktrees/
 
 # Claude Code local settings
 .claude/
