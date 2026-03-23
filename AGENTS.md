@@ -29,4 +29,11 @@
 ## 提交与 Pull Request 规范
 Git 历史遵循 Conventional Commit 风格，常见前缀包括 `feat:`、`fix:`、`docs:`、`refactor:` 和 `chore:`，也存在 `feat(hooks): ...` 这类带 scope 的形式。提交标题使用祈使句，前缀后小写开头，并保持简洁。
 
+AI 执行 `git commit` 时，提交信息必须使用简体中文。约束如下：
+
+- 保留 Conventional Commit 的英文前缀与可选 scope，例如 `feat:`、`fix:`、`docs:`、`chore:`、`feat(hooks):`
+- 冒号后的主题必须使用简体中文，禁止只写英文，禁止繁体中文，避免中英混杂句式
+- 若需要补充提交说明，正文同样默认使用简体中文
+- 未完成验证前不要创建提交；提交前至少确认本次改动已完成约定中的校验
+
 PR 应遵循 `.github/PULL_REQUEST_TEMPLATE.md`，说明变更类型与验证方式，并确认 `node scripts/validate-config.js` 和 `node tests/run-all.js` 已通过。若新增或重命名 agents、commands、skills 或带版本的文档，还需同步更新 `CLAUDE.md`、`docs/配置定制指南.md`、`README.md` 以及 `scripts/validate-config.js` 中受数量或文件清单约束的内容。

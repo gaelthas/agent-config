@@ -263,6 +263,8 @@ node scripts/validate-config.js
 node tests/run-all.js
 ```
 
+AI 执行 `git commit` 时必须使用简体中文提交信息；保留 Conventional Commit 的英文前缀或 scope，但冒号后的主题与正文默认使用简体中文。
+
 如果你只是验证已部署到业务项目中的 UCC 资产，执行：
 
 ```bash
