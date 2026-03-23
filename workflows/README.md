@@ -15,7 +15,7 @@
 - 通过 `/ucc-flow-continue` 统一恢复
 - 记录触发链、当前节点、下一节点、暂停状态
 - 通过 `control/*.json` 暴露最近阶段摘要、并行委派状态、验证状态和阻塞信息
-- 公开 slash 入口固定为 5 个自动化入口与 3 个控制命令，其余能力由内部 agent 承担
+- 公开 slash 入口固定为 6 个自动化入口与 3 个控制命令，其余能力由内部 agent 承担
 
 ## 默认约束
 
@@ -23,6 +23,7 @@
 - 默认仅允许一个 active run
 - 默认执行模式：`auto`
 - 根据 profile 自动应用 `pausePolicy`
+- `team.parallel` 通过 `integrate` 节点统一收口；若并行实施或集成阶段阻塞，推荐回退到 `team.standard.implement`
 - `team.research` 的 `handoff` 会自动切入 `team.standard.plan`
 - `single.research` 的 `next-action` 会自动切入 `single.standard.plan`
 

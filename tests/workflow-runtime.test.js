@@ -270,6 +270,128 @@ try {
   assert.ok(richStatusSummary.includes('验证状态:'), '状态摘要应包含验证状态区块')
   assert.ok(richStatusSummary.includes('tsc [passed]'), '状态摘要应显示 verification 状态')
 
+  const resetForParallel = runtime.abortRun({ runId: secondStarted.run.runId, reason: 'parallel workflow regression' }, options)
+  assert.strictEqual(resetForParallel.action, 'aborted')
+
+  const blockedParallelStarted = runtime.startRun(
+    {
+      command: '/ucc-team-parallel',
+      task: '并行阻塞回退测试',
+    },
+    options,
+  )
+  assert.strictEqual(blockedParallelStarted.action, 'started')
+
+  let blockedParallelAdvanced = runtime.advanceRun({ runId: blockedParallelStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(blockedParallelAdvanced.run.currentNode, 'plan')
+
+  blockedParallelAdvanced = runtime.advanceRun({ runId: blockedParallelStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(blockedParallelAdvanced.run.currentNode, 'parallel-implement')
+
+  const blockedParallelResult = runtime.advanceRun(
+    {
+      runId: blockedParallelStarted.run.runId,
+      result: 'blocked',
+      summary: 'ownership overlap',
+      signals: ['conflict'],
+    },
+    options,
+  )
+  assert.strictEqual(blockedParallelResult.action, 'blocked')
+  assert.strictEqual(blockedParallelResult.run.profile, 'team.parallel')
+  assert.strictEqual(blockedParallelResult.run.currentNode, 'parallel-implement')
+  assert.strictEqual(blockedParallelResult.run.nextNode, 'team.standard.implement')
+  assert.strictEqual(blockedParallelResult.run.status, 'blocked')
+
+  let blockedParallelControlSnapshot = readJson(getControlPaths(blockedParallelStarted.run.runId).runControl)
+  assert.strictEqual(blockedParallelControlSnapshot.blocking.reason, 'conflict')
+  assert.deepStrictEqual(blockedParallelControlSnapshot.blocking.signals, ['conflict'])
+
+  const resetBlockedParallel = runtime.abortRun(
+    { runId: blockedParallelStarted.run.runId, reason: 'parallel blocked regression' },
+    options,
+  )
+  assert.strictEqual(resetBlockedParallel.action, 'aborted')
+
+  const parallelStarted = runtime.startRun(
+    {
+      command: '/ucc-team-parallel',
+      task: '并行团队交付测试',
+    },
+    options,
+  )
+  assert.strictEqual(parallelStarted.action, 'started')
+  assert.strictEqual(parallelStarted.run.profile, 'team.parallel')
+  assert.strictEqual(parallelStarted.run.currentNode, 'clarify')
+  assert.strictEqual(parallelStarted.run.nextNode, 'plan')
+  assert.strictEqual(parallelStarted.run.pausePolicy, 'balanced')
+
+  const parallelControlPaths = getControlPaths(parallelStarted.run.runId)
+  let parallelAdvanced = runtime.advanceRun({ runId: parallelStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(parallelAdvanced.run.currentNode, 'plan')
+
+  parallelAdvanced = runtime.advanceRun({ runId: parallelStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(parallelAdvanced.run.currentNode, 'parallel-implement')
+
+  let parallelDelegateUpdated = runtime.updateDelegateStatus(
+    {
+      runId: parallelStarted.run.runId,
+      delegateId: 'slice-a',
+      name: 'implementation-slice-a',
+      agent: 'tdd-guide',
+      status: 'completed',
+      required: true,
+      summary: 'slice a ready',
+    },
+    options,
+  )
+  assert.strictEqual(parallelDelegateUpdated.action, 'delegate-updated')
+
+  parallelDelegateUpdated = runtime.updateDelegateStatus(
+    {
+      runId: parallelStarted.run.runId,
+      delegateId: 'slice-b',
+      name: 'implementation-slice-b',
+      agent: 'tdd-guide',
+      status: 'completed',
+      required: true,
+      summary: 'slice b ready',
+    },
+    options,
+  )
+  assert.strictEqual(parallelDelegateUpdated.action, 'delegate-updated')
+
+  let parallelControlSnapshot = readJson(parallelControlPaths.runControl)
+  const sliceADelegate = findDelegate(parallelControlSnapshot, 'slice-a')
+  const sliceBDelegate = findDelegate(parallelControlSnapshot, 'slice-b')
+  assert.ok(sliceADelegate, 'team.parallel delegate A 应写入 control snapshot')
+  assert.ok(sliceBDelegate, 'team.parallel delegate B 应写入 control snapshot')
+  assert.strictEqual(sliceADelegate.node, 'parallel-implement', 'team.parallel delegate 应记录 parallel-implement 节点')
+  assert.strictEqual(sliceBDelegate.node, 'parallel-implement', 'team.parallel delegate 应记录 parallel-implement 节点')
+
+  parallelAdvanced = runtime.advanceRun(
+    {
+      runId: parallelStarted.run.runId,
+      result: 'passed',
+      signals: ['conflict'],
+    },
+    options,
+  )
+  assert.strictEqual(parallelAdvanced.action, 'paused')
+  assert.strictEqual(parallelAdvanced.run.currentNode, 'integrate')
+  assert.strictEqual(parallelAdvanced.run.status, 'paused')
+
+  parallelControlSnapshot = readJson(parallelControlPaths.runControl)
+  assert.strictEqual(parallelControlSnapshot.blocking.reason, 'conflict')
+  assert.deepStrictEqual(parallelControlSnapshot.blocking.signals, ['conflict'])
+
+  let parallelContinued = runtime.continueRun({ runId: parallelStarted.run.runId }, options)
+  assert.strictEqual(parallelContinued.action, 'continued')
+  assert.strictEqual(parallelContinued.run.status, 'running')
+
+  parallelAdvanced = runtime.advanceRun({ runId: parallelStarted.run.runId, result: 'passed' }, options)
+  assert.strictEqual(parallelAdvanced.run.currentNode, 'review')
+
   const conflict = runtime.startRun(
     {
       command: '/ucc-single-research',
@@ -277,10 +399,10 @@ try {
     options,
   )
   assert.strictEqual(conflict.action, 'conflict')
-  assert.strictEqual(conflict.run.runId, secondStarted.run.runId)
+  assert.strictEqual(conflict.run.runId, parallelStarted.run.runId)
 
-  const resetForSingle = runtime.abortRun({ runId: secondStarted.run.runId, reason: 'single workflow regression' }, options)
-  assert.strictEqual(resetForSingle.action, 'aborted')
+  const resetAfterParallel = runtime.abortRun({ runId: parallelStarted.run.runId, reason: 'single workflow regression' }, options)
+  assert.strictEqual(resetAfterParallel.action, 'aborted')
 
   const singleStarted = runtime.startRun(
     {

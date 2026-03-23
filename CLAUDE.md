@@ -28,6 +28,7 @@
 适用命令：
 
 - `/ucc-team-standard`
+- `/ucc-team-parallel`
 - `/ucc-team-strict`
 - `/ucc-team-research`
 - `/ucc-single-standard`
@@ -61,7 +62,7 @@
 ./
 |-- CLAUDE.md              # 主入口配置
 |-- agents/                # 代理配置（20个）
-|-- commands/              # 公开斜杠命令（8个）
+|-- commands/              # 公开斜杠命令（9个）
 |-- rules/                 # 编码规范
 |-- skills/                # 技能模块（19个）
 |-- hooks/                 # 可选安全 Hook
@@ -78,6 +79,7 @@
 推荐直接使用以下入口：
 
 - 团队标准交付：`/ucc-team-standard`
+- 团队受控并行交付：`/ucc-team-parallel`
 - 团队严格交付：`/ucc-team-strict`
 - 团队调研并自动交接：`/ucc-team-research`
 - 单人标准闭环：`/ucc-single-standard`
@@ -89,7 +91,7 @@
 - `/ucc-flow-continue`
 - `/ucc-flow-abort`
 
-当前公开 slash 命令面固定为 8 个；其余构建修复、专项审查、文档和 E2E 能力只作为内部 agent / workflow 节点调用。
+当前公开 slash 命令面固定为 9 个；其余构建修复、专项审查、文档和 E2E 能力只作为内部 agent / workflow 节点调用。
 
 ### 2. 运行时默认自动接力
 
@@ -127,6 +129,25 @@
 5. `verify`（节点内有限并行验证）
 6. `docs`
 7. `summary`
+
+### 场景 A2：低冲突多模块任务，受控并行交付
+
+```text
+/ucc-team-parallel 将任务切成低冲突子任务，并行实施后统一集成，再进入审查与验证
+```
+
+预期自动链路：
+
+1. `clarify`
+2. `plan`
+3. `parallel-implement`
+4. `integrate`
+5. `review`
+6. `verify`
+7. `docs`
+8. `summary`
+
+约束：仅在文件所有权清晰、共享核心文件较少时使用；若出现冲突、所有权重叠或关键切片失败，应回退到更保守路径。
 
 如果中途命中风险或失败：
 
@@ -207,6 +228,7 @@
 ### 自动化流程入口
 
 - `/ucc-team-standard`
+- `/ucc-team-parallel`
 - `/ucc-team-strict`
 - `/ucc-team-research`
 - `/ucc-single-standard`
@@ -222,7 +244,7 @@
 
 构建修复、数据库审查、语言专项审查、E2E、文档生成与同步、覆盖率补齐、死代码清理和上下文切换能力继续保留，但不再作为公开 slash 命令暴露；运行时会根据当前节点和风险信号自动调度对应 agent。
 
-当前 team workflow 仍采用单 active run 的串行主干；受控并行在 `team.standard.plan`、`team.strict.detailed-plan`、`review` 与验证节点内开启，由 `team-orchestrator` 汇总 `planner`、按需触发的 `architect`、`code-reviewer`、`security-reviewer` 与 `database-reviewer` 结果后再继续推进。运行时还会写入 `.claude/workflows/control/*.json`，让 `/ucc-flow-status` 只展示当前节点对应的最近阶段摘要、并行委派与验证状态。
+当前 team workflow 仍采用单 active run 的串行主干；受控并行在 `team.standard.plan`、`team.parallel.parallel-implement`、`team.strict.detailed-plan`、`review` 与验证节点内开启，由 `team-orchestrator` 汇总 `planner`、按需触发的 `architect`、`tdd-guide`、`code-reviewer`、`security-reviewer` 与 `database-reviewer` 结果后再继续推进。`/ucc-team-parallel` 必须经过 `integrate` 节点统一收口，且只适用于低冲突、文件所有权清晰的任务。运行时还会写入 `.claude/workflows/control/*.json`，让 `/ucc-flow-status` 只展示当前节点对应的最近阶段摘要、并行委派与验证状态。
 
 ## 安全与质量要求
 

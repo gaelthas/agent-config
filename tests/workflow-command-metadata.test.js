@@ -16,6 +16,7 @@ const publicWorkflowCommands = [
   ['commands/ucc-team-standard.md', 'workflowProfile: team.standard', 'pausePolicy: balanced'],
   ['commands/ucc-team-strict.md', 'workflowProfile: team.strict', 'pausePolicy: strict'],
   ['commands/ucc-team-research.md', 'workflowProfile: team.research', 'pausePolicy: balanced'],
+  ['commands/ucc-team-parallel.md', 'workflowProfile: team.parallel', 'pausePolicy: balanced'],
   ['commands/ucc-single-standard.md', 'workflowProfile: single.standard', 'pausePolicy: auto'],
   ['commands/ucc-single-research.md', 'workflowProfile: single.research', 'pausePolicy: balanced'],
   ['commands/ucc-flow-status.md', 'agent: workflow-orchestrator', null],
@@ -58,6 +59,7 @@ assertContains('agents/workflow-orchestrator.md', '当前节点尚未开始验�
 
 const definitions = JSON.parse(read('workflows/definitions.json'))
 assert.strictEqual(definitions.profiles['team.standard'].publicCommand, '/ucc-team-standard')
+assert.strictEqual(definitions.profiles['team.parallel'].publicCommand, '/ucc-team-parallel')
 assert.strictEqual(definitions.profiles['single.standard'].publicCommand, '/ucc-single-standard')
 assert.ok(definitions.profiles['single.standard'].nodes, 'single.standard 缺少 nodes 定义')
 assert.ok(
@@ -78,6 +80,30 @@ assert.ok(
 assert.ok(definitions.pausePolicies.auto.includes('build-failed'))
 assert.ok(definitions.pausePolicies.balanced.includes('db-migration'))
 assert.ok(definitions.pausePolicies.strict.includes('quality-gate'))
+
+const teamParallelPlan = definitions.profiles['team.parallel'].nodes.plan
+const teamParallelImplement = definitions.profiles['team.parallel'].nodes['parallel-implement']
+const teamParallelIntegrate = definitions.profiles['team.parallel'].nodes.integrate
+assert.strictEqual(teamParallelPlan.nextOnBlocked.profile, 'team.standard', 'team.parallel.plan 被阻塞时应回退到 team.standard')
+assert.strictEqual(teamParallelPlan.nextOnBlocked.node, 'implement', 'team.parallel.plan 被阻塞时应回退到 team.standard.implement')
+assert.strictEqual(teamParallelImplement.executorAgent, 'team-orchestrator', 'team.parallel.parallel-implement 应由 team-orchestrator 协调并行实施')
+assert.strictEqual(teamParallelImplement.executionStrategy, 'parallel-delegate', 'team.parallel.parallel-implement 缺少 parallel-delegate 策略')
+assert.strictEqual(teamParallelImplement.joinPolicy, 'all-required-complete', 'team.parallel.parallel-implement 缺少并行汇总策略')
+assert.deepStrictEqual(
+  teamParallelImplement.parallelDelegates.map((delegate) => delegate.name),
+  ['implementation-slice-a', 'implementation-slice-b'],
+  'team.parallel.parallel-implement 并行委派列表不正确',
+)
+assert.strictEqual(teamParallelImplement.parallelDelegates[0].agent, 'tdd-guide')
+assert.strictEqual(teamParallelImplement.parallelDelegates[0].required, true)
+assert.strictEqual(teamParallelImplement.parallelDelegates[1].agent, 'tdd-guide')
+assert.strictEqual(teamParallelImplement.parallelDelegates[1].required, true)
+assert.strictEqual(teamParallelImplement.nextOnBlocked.profile, 'team.standard', 'team.parallel.parallel-implement 被阻塞时应回退到 team.standard')
+assert.strictEqual(teamParallelImplement.nextOnBlocked.node, 'implement', 'team.parallel.parallel-implement 被阻塞时应回退到 team.standard.implement')
+assert.strictEqual(teamParallelIntegrate.executorAgent, 'team-orchestrator', 'team.parallel.integrate 应由 team-orchestrator 负责集成')
+assert.strictEqual(teamParallelIntegrate.nextOnSuccess.node, 'review', 'team.parallel.integrate 完成后应进入 review')
+assert.strictEqual(teamParallelIntegrate.nextOnBlocked.profile, 'team.standard', 'team.parallel.integrate 被阻塞时应回退到 team.standard')
+assert.strictEqual(teamParallelIntegrate.nextOnBlocked.node, 'implement', 'team.parallel.integrate 被阻塞时应回退到 team.standard.implement')
 
 const teamStandardReview = definitions.profiles['team.standard'].nodes.review
 const teamStandardPlan = definitions.profiles['team.standard'].nodes.plan

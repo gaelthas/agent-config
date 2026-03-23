@@ -8,6 +8,7 @@ const teamCommands = [
   'commands/ucc-team-standard.md',
   'commands/ucc-team-strict.md',
   'commands/ucc-team-research.md',
+  'commands/ucc-team-parallel.md',
 ]
 
 teamCommands.forEach((file) => {
@@ -30,8 +31,11 @@ const usage = fs.readFileSync(path.join(root, 'docs', '使用说明.md'), 'utf8'
 const claude = fs.readFileSync(path.join(root, 'CLAUDE.md'), 'utf8')
 
 assert.ok(readme.includes('/ucc-team-standard'), 'README 未推荐团队主入口命令')
+assert.ok(readme.includes('/ucc-team-parallel'), 'README 未说明并行团队入口命令')
 assert.ok(usage.includes('/ucc-team-strict'), '使用说明未包含严格团队命令')
+assert.ok(usage.includes('/ucc-team-parallel'), '使用说明未包含并行团队命令')
 assert.ok(claude.includes('/ucc-team-standard'), 'CLAUDE.md 未声明新的团队入口命令')
+assert.ok(claude.includes('/ucc-team-parallel'), 'CLAUDE.md 未声明并行团队入口命令')
 
 ;[
   'commands/ucc-flow-team-standard.md',

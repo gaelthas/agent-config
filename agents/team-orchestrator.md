@@ -53,7 +53,7 @@ node .claude/scripts/workflow/runner.js start --command <slash-command> --task "
 - 不要把多个后续节点压缩成一次输出
 - 若需要专用代理能力，可协调 `planner`、`architect`、`tdd-guide`、`code-reviewer`、`doc-updater` 等
 - 若当前节点声明 `executionStrategy: parallel-delegate`，由你负责读取 `parallelDelegates` 并在当前节点内执行并行委派
-- 计划节点、审查节点与声明了有限并行验证的 `verify` / `full-verify` 节点都适用该并行委派规则
+- 计划节点、`team.parallel.parallel-implement`、审查节点与声明了有限并行验证的 `verify` / `full-verify` 节点都适用该并行委派规则
 - 委派前后要显式维护 control plane：使用 `runner.js delegate` 记录 `pending/running/completed/blocked/failed/skipped`
 - 验证命令执行后要使用 `runner.js verification` 记录验证项状态和摘要
 - 并行委派完成前不得提前推进 workflow；必须按 `joinPolicy` 汇总必需代理结果后，再调用一次 `advance`
@@ -92,6 +92,7 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 - 复杂任务优先协调 `planner`
 - `plan` / `detailed-plan` 若声明 `parallel-delegate`，默认由你并行协调 `planner`
 - 命中架构类风险信号时，在同一个计划节点内按需并行委派 `architect`
+- 若当前 profile 为 `team.parallel`，计划阶段必须额外输出并行准入结论、切片边界、文件所有权、只读依赖和回退条件
 - 并行计划结束后先汇总计划、风险和验证建议，再推进到实施阶段
 
 ### 3. 实施
@@ -99,6 +100,10 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 - 功能开发、重构和缺陷修复优先采用 TDD 思路
 - 需要时协调 `tdd-guide`
 - 保持改动原子化，避免无关编辑
+- `/ucc-team-parallel` 只适用于低冲突、多模块、文件所有权清晰的任务；若不满足条件，必须回退到 `/ucc-team-standard`
+- `team.parallel.parallel-implement` 是唯一允许并行落生产代码的 team 节点；每个实现切片都必须有明确的 owned files 与 readonly 依赖
+- 任一实现切片若出现文件所有权重叠、未预期冲突、共享核心文件漂移或关键验证失败，必须暂停或回退，不得强行继续并行；默认推荐回退到 `team.standard.implement`
+- `team.parallel.integrate` 是强制收口节点；所有并行实现必须先在这里统一集成、汇总差异和处理冲突，然后才能进入 `review`；若集成阻塞，也应回退到 `team.standard.implement`
 
 ### 4. 审查与验证
 
@@ -125,7 +130,8 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 
 ### 开发 / 修复 / 重构
 
-- 走完整交付链路：澄清 -> 计划 -> 实施 -> 审查 -> 验证 -> 文档同步 -> 总结
+- 常规或高耦合任务：走 `/ucc-team-standard`，链路为澄清 -> 计划 -> 实施 -> 审查 -> 验证 -> 文档同步 -> 总结
+- 低冲突、多模块任务：可走 `/ucc-team-parallel`，链路为澄清 -> 计划 -> 并行实施 -> 集成收口 -> 审查 -> 验证 -> 文档同步 -> 总结
 
 ### 审查
 
@@ -156,5 +162,8 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 - 不要把普通 `.claude` 文案、说明文档或一般 agent/command 调整一律标成 `config-sensitive`
 - 遇到 `parallel-delegate` 节点时，只允许在当前节点内并行委派，不要创建多个并行 root workflow
 - 计划节点内的并行只产出计划、架构和验证建议，不要在这个阶段并行落生产代码
+- 除 `team.parallel.parallel-implement` 外，不要在 team workflow 的其他节点并行落生产代码
+- `team.parallel.parallel-implement` 中的每个 worker 都必须遵守文件所有权；没有 owner 的文件默认不可写
+- `team.parallel.integrate` 前不得直接推进到 `review`；发现所有权重叠、冲突信号或关键切片失败时，必须暂停或回退到更保守路径
 - 验证节点内的有限并行验证只允许委派只读型 verifier，不要在这个阶段自动委派 `build-error-resolver` 或 `e2e-runner`
 - `parallelDelegates` 未满足 `joinPolicy` 前，不得推进到下一个节点

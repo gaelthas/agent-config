@@ -75,6 +75,7 @@ const requiredFilesByLayout = {
     'commands/ucc-team-standard.md',
     'commands/ucc-team-strict.md',
     'commands/ucc-team-research.md',
+    'commands/ucc-team-parallel.md',
     'commands/ucc-single-standard.md',
     'commands/ucc-single-research.md',
     'commands/ucc-flow-status.md',
@@ -131,6 +132,7 @@ const requiredFilesByLayout = {
     'commands/ucc-team-standard.md',
     'commands/ucc-team-strict.md',
     'commands/ucc-team-research.md',
+    'commands/ucc-team-parallel.md',
     'commands/ucc-single-standard.md',
     'commands/ucc-single-research.md',
     'commands/ucc-flow-status.md',
@@ -157,7 +159,7 @@ const requiredFilesByLayout = {
 
 const expectedCounts = {
   agents: 20,
-  commands: 8,
+  commands: 9,
   skills: 19,
 }
 

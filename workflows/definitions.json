@@ -394,6 +394,207 @@
         }
       }
     },
+    "team.parallel": {
+      "mode": "team",
+      "label": "UCC Team Parallel Workflow",
+      "publicCommand": "/ucc-team-parallel",
+      "executionModeDefault": "auto",
+      "pausePolicyDefault": "balanced",
+      "entryNode": "clarify",
+      "nodes": {
+        "clarify": {
+          "phase": "需求澄清",
+          "executorAgent": "team-orchestrator",
+          "successCondition": "目标、约束、边界与并行准入条件明确",
+          "failureCondition": "需求冲突、范围不清或任务不适合并行",
+          "nextOnSuccess": {
+            "node": "plan"
+          },
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "scope-summary",
+            "parallel-admission-check"
+          ]
+        },
+        "plan": {
+          "phase": "实现计划",
+          "executorAgent": "team-orchestrator",
+          "successCondition": "实施切片、文件所有权、集成点和验证建议已明确",
+          "failureCondition": "无法形成低冲突并行计划",
+          "executionStrategy": "parallel-delegate",
+          "parallelDelegates": [
+            {
+              "name": "implementation-plan",
+              "agent": "planner",
+              "required": true
+            },
+            {
+              "name": "architecture-check",
+              "agent": "architect",
+              "required": false,
+              "whenSignals": [
+                "api-contract",
+                "auth-change",
+                "mass-rename"
+              ]
+            }
+          ],
+          "joinPolicy": "all-required-complete",
+          "nextOnSuccess": {
+            "node": "parallel-implement"
+          },
+          "nextOnBlocked": {
+            "profile": "team.standard",
+            "node": "implement"
+          },
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "implementation-plan",
+            "parallel-slice-plan"
+          ]
+        },
+        "parallel-implement": {
+          "phase": "并行实施",
+          "executorAgent": "team-orchestrator",
+          "successCondition": "所有必需切片已完成并记录集成摘要",
+          "failureCondition": "必需切片失败、文件所有权冲突或实现被构建/依赖阻塞",
+          "executionStrategy": "parallel-delegate",
+          "parallelDelegates": [
+            {
+              "name": "implementation-slice-a",
+              "agent": "tdd-guide",
+              "required": true
+            },
+            {
+              "name": "implementation-slice-b",
+              "agent": "tdd-guide",
+              "required": true
+            }
+          ],
+          "joinPolicy": "all-required-complete",
+          "nextOnSuccess": {
+            "node": "integrate"
+          },
+          "nextOnBlocked": {
+            "profile": "team.standard",
+            "node": "implement"
+          },
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "slice-change-summary"
+          ]
+        },
+        "integrate": {
+          "phase": "集成收口",
+          "executorAgent": "team-orchestrator",
+          "successCondition": "并行切片已收口为单一可审查改动集",
+          "failureCondition": "存在未解决冲突、所有权重叠或集成风险",
+          "nextOnSuccess": {
+            "node": "review"
+          },
+          "nextOnBlocked": {
+            "profile": "team.standard",
+            "node": "implement"
+          },
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "code-change-summary",
+            "integration-report"
+          ]
+        },
+        "review": {
+          "phase": "审查",
+          "executorAgent": "team-orchestrator",
+          "successCondition": "并行审查已完成且关键问题已解决或记录阻塞",
+          "failureCondition": "必需审查未完成或存在未解决关键问题",
+          "executionStrategy": "parallel-delegate",
+          "parallelDelegates": [
+            {
+              "name": "code-review",
+              "agent": "code-reviewer",
+              "required": true
+            },
+            {
+              "name": "security-review",
+              "agent": "security-reviewer",
+              "required": false,
+              "whenSignals": [
+                "auth-change",
+                "config-sensitive",
+                "api-contract"
+              ]
+            }
+          ],
+          "joinPolicy": "all-required-complete",
+          "nextOnSuccess": {
+            "node": "verify"
+          },
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "review-report"
+          ]
+        },
+        "verify": {
+          "phase": "验证",
+          "executorAgent": "team-orchestrator",
+          "successCondition": "必需验证已完成，关键问题已解决或阻塞已记录",
+          "failureCondition": "必需验证未完成或关键检查失败",
+          "executionStrategy": "parallel-delegate",
+          "parallelDelegates": [
+            {
+              "name": "code-verify",
+              "agent": "code-reviewer",
+              "required": true
+            },
+            {
+              "name": "database-verify",
+              "agent": "database-reviewer",
+              "required": false,
+              "whenSignals": [
+                "db-migration"
+              ]
+            }
+          ],
+          "joinPolicy": "all-required-complete",
+          "nextOnSuccess": {
+            "node": "docs"
+          },
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "verification-report"
+          ]
+        },
+        "docs": {
+          "phase": "文档同步",
+          "executorAgent": "doc-updater",
+          "successCondition": "必要文档已同步或说明无需更新",
+          "failureCondition": "文档与实现不一致",
+          "nextOnSuccess": {
+            "node": "summary"
+          },
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "doc-sync-report"
+          ]
+        },
+        "summary": {
+          "phase": "交付总结",
+          "executorAgent": "team-orchestrator",
+          "successCondition": "已总结变更、验证和风险",
+          "failureCondition": "无",
+          "nextOnSuccess": null,
+          "nextOnBlocked": null,
+          "approvalRequired": false,
+          "artifactsWritten": [
+            "delivery-summary"
+          ]
+        }
+      }
+    },
     "team.strict": {
       "mode": "team",
       "label": "UCC Team Strict Workflow",
