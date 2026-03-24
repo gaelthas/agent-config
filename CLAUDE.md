@@ -1,6 +1,16 @@
 # CLAUDE.md
 
-此文件为 Claude Code 提供 UCC（Unified Claude Code Config）配置入口。
+此文件为 Claude Code 提供 UCC（Unified Claude Code Config）配置入口，同时补充源仓库自身的协作约束。
+
+## 源仓库说明
+
+本仓库维护 Claude Code 的 UCC 配置资产，用于生成和维护可复用的 `.claude/` 运行时配置；它不是业务项目，也不是上游仓库的直接镜像。
+
+当前仓库在目录组织与 Claude Code 配置思路上借鉴了 `affaan-m/everything-claude-code`：
+
+- 上游仓库：`https://github.com/affaan-m/everything-claude-code`
+- 后续迭代若涉及 `agents/`、`commands/`、`skills/`、`hooks/`、`workflows/`、`mcp-configs/` 或复制安装脚本，优先对照上游的新变化，再决定是否按 UCC 约束选择性同步
+- 同步时不要直接覆盖本仓库现有接口约束，例如 `ucc-` 命令前缀、`@ucc` 调用标记、中文文档入口、workflow/runtime 结构和本地校验规则
 
 ## 配置标识
 
@@ -255,6 +265,9 @@
 - 高风险任务优先使用 `/ucc-team-strict`
 
 ## 维护要求
+
+- 源仓库默认保留 `docs/`、`tests/` 和维护脚本，不随部署包直接复制到目标项目
+- 如果新增或重命名 agents、commands、skills 或带版本的文档，需要同步更新 `README.md`、`docs/配置定制指南.md` 和 `scripts/validate-config.js`
 
 如果你在维护 UCC 配置仓库，修改命令面、workflow、代理或文档后，至少执行：
 

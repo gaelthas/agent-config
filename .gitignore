@@ -29,3 +29,4 @@ tmp/
 # Claude Code local settings
 .claude/
 .claude/settings.local.json
+docs/superpowers

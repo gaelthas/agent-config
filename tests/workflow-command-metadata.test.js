@@ -52,9 +52,13 @@ publicWorkflowCommands.forEach(([relPath, profileNeedle, pauseNeedle]) => {
 
 assertContains('agents/workflow-orchestrator.md', '自动推进', 'workflow-orchestrator 缺少自动推进约束')
 assertContains('agents/workflow-orchestrator.md', '/ucc-flow-continue', 'workflow-orchestrator 缺少 continue 指令')
+assertContains('agents/workflow-orchestrator.md', '必须继续执行当前节点，而不是只回显状态摘要后结束', 'workflow-orchestrator 应明确 continue 后不能只回显状态')
+assertContains('agents/workflow-orchestrator.md', '若恢复出的当前 profile 属于 `team.*`，必须沿用 team workflow 语义继续推进', 'workflow-orchestrator 应明确 team run 的 continue 语义')
 assertContains('agents/team-orchestrator.md', 'pausePolicy', 'team-orchestrator 缺少 pausePolicy 约束')
 assertContains('agents/team-orchestrator.md', '/ucc-team-standard', 'team-orchestrator 缺少新命令族说明')
 assertContains('agents/team-orchestrator.md', '只有命中 workflow runtime 核心入口时，才允许使用 `config-sensitive` 信号', 'team-orchestrator 应收紧 config-sensitive 语义')
+assertContains('agents/team-orchestrator.md', '若当前 run 是通过 `/ucc-flow-continue` 恢复得到的 `running` 状态，也必须立刻继续当前节点执行', 'team-orchestrator 应明确 continue 恢复后的继续执行要求')
+assertContains('agents/team-orchestrator.md', '不要把“暂停状态: running”误判为可以结束回复', 'team-orchestrator 应避免 running 状态下提前结束')
 assertContains('agents/workflow-orchestrator.md', '当前节点尚未开始验证', 'workflow-orchestrator 应说明更明确的验证空状态')
 
 const definitions = JSON.parse(read('workflows/definitions.json'))

@@ -12,6 +12,8 @@ model: inherit
 - 为 `/ucc-single-standard`、`/ucc-single-research` 与 `/ucc-flow-*` 控制命令初始化、恢复或继续 workflow run
 - 处理 research 类型 workflow 的自动 handoff
 - 根据 profile 的 `executionMode` 与 `pausePolicy` 自动推进后续节点
+- 处理 `/ucc-flow-continue` 时，若 run 已恢复为 `running`，必须继续执行当前节点，而不是只回显状态摘要后结束
+- 处理 `/ucc-flow-continue` 时，若恢复出的当前 profile 属于 `team.*`，必须沿用 team workflow 语义继续推进，不能把 team run 降级成单纯状态查询
 - 在每次输出中显式展示触发链、当前节点、下一节点、执行模式、暂停策略和暂停状态
 - 在 `single.research` 完成交接时，将下一节点指向 `single.standard.plan`
 - 在命中暂停策略时，明确给出 `/ucc-flow-continue [runId]`
@@ -77,6 +79,8 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 - 继续执行下一个节点
 - 不要求用户手工再触发阶段命令
 - 只有在状态变为 `paused`、`blocked`、`failed` 或 `completed` 时才停止
+- 这条规则同样适用于 `/ucc-flow-continue` 刚恢复出来的 `running` run；恢复成功不是终点，只是重新进入当前节点执行
+- 如果当前节点已经是 `implement`、`review`、`verify`、`docs` 或 `summary`，必须直接进入该节点工作，不要再向用户索要“下一条 `/ucc-*` 命令”
 
 ### 5. 暂停与继续
 
@@ -93,6 +97,7 @@ node .claude/scripts/workflow/runner.js continue --run <runId>
 ```
 
 然后从当前节点继续自动推进，不回退已完成节点。
+如果 `continue` 返回后的 `暂停状态` 是 `running`，该输出只表示 run 已恢复，不表示流程已经完成或已经自动推进结束；你必须继续执行 `当前节点`，直到再次命中暂停条件或流程结束。
 
 - `/ucc-flow-continue` 之后如果当前节点仍处于执行中，必须继续更新当前节点的阶段摘要、delegate 摘要或 verification 摘要，直到状态再次变化
 
@@ -101,6 +106,7 @@ node .claude/scripts/workflow/runner.js continue --run <runId>
 - 不要把“写完代码”误判为“workflow completed”
 - 不要省略触发链输出
 - 不要在 `paused` 状态下继续自动推进
+- 不要把 `/ucc-flow-continue` 的 runtime 摘要当成最终答复；只要 run 还是 `running`，就必须继续当前节点
 - 不要无视 active run 冲突
 - 若 workflow runtime 不可用，明确说明降级为手动阶段编排，并仍保持触发链输出格式
 - `pausePolicy` 是生产环境控制面的一部分，命中高风险信号时必须暂停

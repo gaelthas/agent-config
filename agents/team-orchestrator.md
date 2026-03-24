@@ -74,6 +74,8 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 
 - 继续自动推进到下一个节点
 - 不要求用户手工再触发阶段命令
+- 若当前 run 是通过 `/ucc-flow-continue` 恢复得到的 `running` 状态，也必须立刻继续当前节点执行，不能只展示“已恢复”后停止
+- 当 `currentNode` 已经是 `implement`、`review`、`verify`、`docs` 或 `summary` 时，默认视为该节点待执行，而不是等待用户再补 `/ucc-team-standard`、`/ucc-team-strict` 或其他阶段命令
 
 如果状态变为 `paused`：
 
@@ -161,6 +163,7 @@ node .claude/scripts/workflow/runner.js advance --run <runId> --result passed --
 - 不要跳过验证结果说明
 - 不要省略 `配置标识：UCC`
 - 不要省略触发链输出
+- 不要把“暂停状态: running”误判为可以结束回复；只要当前节点未执行完，就要继续该节点
 - 若任务显然更适合现有专用命令，也应说明对应的 UCC 入口
 - `pausePolicy` 命中时必须暂停，而不是继续自动吞掉高风险变更
 - 不要把普通 `.claude` 文案、说明文档或一般 agent/command 调整一律标成 `config-sensitive`

@@ -1,5 +1,12 @@
 # Repository Guidelines
 
+## 项目背景与上游参考
+当前仓库在目录组织与 Claude Code 配置思路上借鉴了 `https://github.com/affaan-m/everything-claude-code`，但并不是该仓库的一比一镜像。
+
+后续迭代如果涉及 `agents/`、`commands/`、`skills/`、`hooks/`、`workflows/` 或复制安装脚本，优先把该仓库视为上游参考，评估是否需要同步其结构或能力，再按本仓库的 UCC 约束完成本地化适配。
+
+同步上游思路时，不要直接覆盖本仓库现有接口约束，例如 `ucc-` 命令前缀、中文文档入口、workflow/runtime 结构、`scripts/validate-config.js` 校验规则，以及 README / 定制指南里的维护约定。
+
 ## 项目结构与模块组织
 本仓库维护 Claude Code 的 UCC 配置资产。核心运行时内容位于 `agents/`、`commands/`、`skills/`、`hooks/`、`workflows/` 和 `mcp-configs/`。贡献者规则位于 `rules/common/` 与 `rules/javascript/`。维护文档放在 `docs/`，验证与回归测试放在 `tests/`，辅助脚本放在 `scripts/`。新增文件应放入对应领域目录，例如 `commands/ucc-foo.md`、`agents/<role>.md`、`skills/<name>/SKILL.md`。
 

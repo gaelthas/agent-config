@@ -6,6 +6,8 @@
 
 `README.md` 只保留快速开始、安装矩阵和最短排障；完整操作说明请看 `docs/使用说明.md`，维护者定制说明请看 `docs/配置定制指南.md`。
 
+> 上游参考：当前 UCC 配置仓库借鉴了 `affaan-m/everything-claude-code` 的组织方式与配置思路，仓库地址为 `https://github.com/affaan-m/everything-claude-code`。后续迭代更新时，建议优先对照上游变更，再结合 UCC 的命名、中文文档与 workflow/runtime 约束做选择性同步。
+
 ---
 
 ## 快速开始
@@ -174,6 +176,13 @@ ai-config/
 ```
 
 研究链路完成后，会自动切入 `team.standard.plan`，继续执行实施、审查、验证、文档同步和总结。
+
+如果输出里已经给出了 research 结论或 handoff-plan，不要立刻手工再补一个新的 `/ucc-team-standard`。正确顺序是：
+
+1. 先用 `/ucc-flow-status` 确认当前 run 仍在 `running` 还是已经 `paused`
+2. 如果仍是 `running`，等待同一个 run 自动从 `team.research.handoff` 接到 `team.standard.plan`
+3. 如果已经 `paused`，使用 `/ucc-flow-continue` 或 `/ucc-flow-continue <runId>` 继续当前 run
+4. 只有在原 run 已结束、丢失或你明确要切换策略时，才重新选择新的显式入口，例如 `/ucc-team-standard`、`/ucc-team-parallel` 或 `/ucc-team-strict`
 
 ### 场景 D：单 agent 自动闭环
 
